@@ -24,12 +24,11 @@ class _LoginViewState extends State<LoginView> {
 
   String _errorText = "";
   bool _isLoading = false;
-  bool _obscureText = true; // AGGIUNTO: Stato per la visibilità della password
+  bool _obscureText = true;
 
   Future<void> _clickAccedi() async {
     if (_isLoading) return;
 
-    // Chiude la tastiera immediatamente
     FocusScope.of(context).unfocus();
 
     setState(() {
@@ -40,7 +39,6 @@ class _LoginViewState extends State<LoginView> {
     final email = _emailController.text.trim();
     final password = _passController.text.trim();
 
-    // Validazione rapida
     if (email.isEmpty || password.isEmpty) {
       setState(() {
         _errorText = "Inserisci tutte le credenziali.";
@@ -52,7 +50,6 @@ class _LoginViewState extends State<LoginView> {
     try {
       debugPrint("DEBUG: Tentativo di login per: $email");
 
-      // Chiamata al servizio Supabase (ora restituisce già il profilo completo)
       final profilo = await DatabaseService.loginUtente(email, password);
 
       if (!mounted) return;
@@ -60,12 +57,8 @@ class _LoginViewState extends State<LoginView> {
       if (profilo != null) {
         debugPrint("DEBUG: Login ok. Profilo: ${profilo['first_name']}");
 
-        // Estrazione dati
         final String ruolo = profilo['role']?.toString() ?? 'atleta';
         final String nome = profilo['first_name']?.toString() ?? 'Utente';
-
-        // NOTA: Non settiamo _isLoading = false qui se stiamo per cambiare pagina,
-        // per evitare che il pulsante "lampeggi" prima di sparire.
 
         widget.loginSuccesso(ruolo, nome);
       } else {
@@ -103,12 +96,24 @@ class _LoginViewState extends State<LoginView> {
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
               child: AutofillGroup(
-                // Fondamentale per salvare password nel browser/iOS/Android
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("💪", style: TextStyle(fontSize: 70)),
-                    const SizedBox(height: 10),
+                    // LOGO GEK AL POSTO DELL'EMOJI
+                    Image.asset(
+                      'assets/images/Logo_Gek.png',
+                      height: 120, // Altezza bilanciata per il login
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Ritorna un'icona di fallback se l'immagine non viene caricata
+                        return const Icon(
+                          Icons.fitness_center,
+                          size: 70,
+                          color: Colors.grey,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 15),
                     const Text(
                       "TRAIN UP",
                       style: TextStyle(
@@ -139,10 +144,10 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Campo Password con Occhiolino
+                    // Campo Password
                     TextField(
                       controller: _passController,
-                      obscureText: _obscureText, // Modificato
+                      obscureText: _obscureText,
                       autofillHints: const [AutofillHints.password],
                       textInputAction: TextInputAction.done,
                       enabled: !_isLoading,
@@ -155,7 +160,6 @@ class _LoginViewState extends State<LoginView> {
                               Icons.lock_outline,
                               size: 22,
                             ),
-                            // AGGIUNTO: Icona occhiolino per mostrare/nascondere
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscureText
@@ -172,7 +176,6 @@ class _LoginViewState extends State<LoginView> {
                           ),
                     ),
 
-                    // Messaggio di Errore dinamico
                     if (_errorText.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 20),

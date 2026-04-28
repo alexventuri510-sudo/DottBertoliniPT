@@ -17,12 +17,11 @@ class _RegisterViewState extends State<RegisterView> {
   final TextEditingController _cognomeController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
-  final TextEditingController _confermaPassController =
-      TextEditingController(); // AGGIUNTO
+  final TextEditingController _confermaPassController = TextEditingController();
 
   String? _ruoloSelezionato;
   bool _accettoTermini = false;
-  bool _obscureText = true; // AGGIUNTO per gestire la visibilità
+  bool _obscureText = true;
   String _errorText = "";
   String _successText = "";
 
@@ -144,13 +143,27 @@ class _RegisterViewState extends State<RegisterView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("📝", style: TextStyle(fontSize: 60)),
+              // LOGO GEK AL POSTO DELL'EMOJI
+              Image.asset(
+                'assets/images/Logo_Gek.png',
+                height: 110, // Dimensione simile alla LoginView
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(
+                    Icons.edit_note,
+                    size: 60,
+                    color: Colors.grey,
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
               const Text(
                 "REGISTRAZIONE",
                 style: TextStyle(
@@ -172,11 +185,11 @@ class _RegisterViewState extends State<RegisterView> {
               ),
               const SizedBox(height: 10),
 
-              // Campo Password con Occhiolino
+              // Campo Password
               _buildPasswordField(_passController, "Password"),
               const SizedBox(height: 10),
 
-              // Campo Conferma Password con Occhiolino
+              // Campo Conferma Password
               _buildPasswordField(_confermaPassController, "Conferma Password"),
               const SizedBox(height: 10),
 

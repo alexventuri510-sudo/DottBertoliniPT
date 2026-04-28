@@ -11,18 +11,17 @@ dependencies:
   flutter:
     sdk: flutter
   
-  # --- ESSENZIALE PER IL CALENDARIO IN ITALIANO ---
+  # Essenziale per il calendario e traduzioni in italiano
   flutter_localizations:
     sdk: flutter
 
   # Icone per stile iOS
   cupertino_icons: ^1.0.8
 
-  # --- AGGIUNTI DA NOI ---
-  # Il motore del database e autenticazione
+  # Database e Autenticazione
   supabase_flutter: ^2.6.0
 
-  # Gestione date e formattazione (es. dd/MM/yyyy)
+  # Gestione date e formattazione
   intl: 0.20.2
 
   # Per aprire i link dei video tutorial
@@ -36,12 +35,12 @@ dev_dependencies:
   flutter_lints: ^3.0.0
 
 flutter:
-  # Abilita le icone Material Design (essenziale)
+  # Abilita le icone Material Design
   uses-material-design: true
   
   # Necessario per la gestione corretta delle traduzioni di sistema
   generate: true
 
-  # Se avrai immagini in futuro, le aggiungerai qui sotto
-  # assets:
-  #   - assets/images/logo.png
+  # Configurazione Asset Immagini
+  assets:
+    - assets/images/Logo_Gek.png
