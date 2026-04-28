@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart'; // Necessario per l'italiano
 import '../services/database_service.dart';
 
 class AtletaPianoXView extends StatefulWidget {
@@ -7,7 +8,7 @@ class AtletaPianoXView extends StatefulWidget {
   final int settimana;
   final String nomeAtleta;
   final VoidCallback vaiIndietro;
-  final Function(List<dynamic>, int, int) vaiADettaglioEsercizio;
+  final Future<bool> Function(List<dynamic>, int, int) vaiADettaglioEsercizio;
   final String? dataPianoStr;
 
   const AtletaPianoXView({
@@ -36,7 +37,9 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
     _inizializzaDati();
   }
 
-  void _inizializzaDati() {
+  void _inizializzaDati() async {
+    // Inizializza i dati delle date per l'italiano
+    await initializeDateFormatting('it_IT', null);
     _preparaDate();
     _caricaEsercizi();
   }
@@ -44,15 +47,18 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
   void _preparaDate() {
     if (widget.dataPianoStr != null && widget.dataPianoStr!.isNotEmpty) {
       try {
-        // Parsing robusto della data
         DateTime dataPiano;
-        if (widget.dataPianoStr!.contains("T")) {
-          dataPiano = DateTime.parse(widget.dataPianoStr!);
+        // Rimuoviamo eventuali spazi bianchi
+        String cleanDate = widget.dataPianoStr!.trim();
+
+        if (cleanDate.contains("T")) {
+          dataPiano = DateTime.parse(cleanDate).toLocal();
         } else {
-          dataPiano = DateFormat("yyyy-MM-dd").parse(widget.dataPianoStr!);
+          // Gestisce il formato yyyy-MM-dd
+          dataPiano = DateFormat("yyyy-MM-dd").parse(cleanDate);
         }
 
-        // Formattazione in Italiano
+        // Formattazione Giorno e Data
         String giornoSettimana = DateFormat(
           'EEEE',
           'it_IT',
@@ -64,10 +70,12 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
           _dataInizioSottotitolo = "Sessione del $dataFormattata";
         });
       } catch (e) {
-        debugPrint("Errore parsing data in PianoX: $e");
+        debugPrint(
+          "DEBUG: Errore parsing data in PianoX: $e - Stringa ricevuta: ${widget.dataPianoStr}",
+        );
         setState(() {
           _titoloGiorno = "SESSIONE DI ALLENAMENTO";
-          _dataInizioSottotitolo = "";
+          _dataInizioSottotitolo = "Data non disponibile";
         });
       }
     }
@@ -121,7 +129,6 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
       ),
       body: Column(
         children: [
-          // HEADER CON DATA E GIORNO
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
@@ -176,7 +183,6 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
               ],
             ),
           ),
-
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -233,11 +239,7 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
         ),
         title: Text(
           es['exercise_name']?.toString().toUpperCase() ?? 'ESERCIZIO',
-          style: const TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 15,
-            letterSpacing: 0.3,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 6),
@@ -258,26 +260,21 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
         ),
         trailing: ElevatedButton(
           onPressed: () async {
-            // Chiamata alla funzione di navigazione e attesa del risultato
             final result = await widget.vaiADettaglioEsercizio(
               _esercizi,
               index,
               widget.settimana,
             );
-
-            // Se l'utente ha cliccato "Termina" (che fa il pop(true)), ricarichiamo la lista
-            if (result == true || result == null) {
+            if (result == true) {
               _caricaEsercizi();
             }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: isCompletato ? Colors.green : Colors.black,
             foregroundColor: Colors.white,
-            elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
           ),
           child: Text(
             isCompletato ? "MODIFICA" : "INIZIA",
@@ -300,7 +297,7 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
           ),
           const SizedBox(height: 16),
           const Text(
-            "Nessun esercizio presente in questa sessione.",
+            "Nessun esercizio in questa sessione.",
             style: TextStyle(
               color: Colors.grey,
               fontSize: 14,

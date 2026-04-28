@@ -23,7 +23,9 @@ class AtletaPianiView extends StatefulWidget {
 class _AtletaPianiViewState extends State<AtletaPianiView> {
   List<dynamic> _pianiAttivi = [];
   List<dynamic> _pianiPassati = [];
+  List<dynamic> _pianiFuturi = [];
   bool _mostraPassati = false;
+  bool _mostraFuturi = false;
   bool _isLoading = true;
 
   @override
@@ -38,55 +40,58 @@ class _AtletaPianiViewState extends State<AtletaPianiView> {
     try {
       final piani = await DatabaseService.getPianiAtleta(widget.atletaId);
 
-      final oggi = DateTime(
-        DateTime.now().year,
-        DateTime.now().month,
-        DateTime.now().day,
-      );
+      final oggi = DateTime.now();
+      final oggiSoloData = DateTime(oggi.year, oggi.month, oggi.day);
 
       List<dynamic> attivi = [];
       List<dynamic> passati = [];
+      List<dynamic> futuri = [];
 
       for (var p in piani) {
         if (p['start_date'] == null) continue;
 
         DateTime dataInizio = DateTime.parse(p['start_date']);
         int settimane = p['duration_weeks'] ?? 1;
-        DateTime dataScadenza = dataInizio.add(Duration(days: settimane * 7));
+        // Calcolo scadenza corretta: (settimane * 7) - 1 giorno
+        DateTime dataScadenza = dataInizio.add(
+          Duration(days: (settimane * 7) - 1),
+        );
 
         String? testoSettimana;
         int settimanaCorrente = 1;
-        bool isPassato = oggi.isAfter(dataScadenza);
+        String stato;
 
-        if (!isPassato) {
-          if (oggi.isBefore(dataInizio)) {
-            testoSettimana = "Inizio programmato";
-            settimanaCorrente = 1;
-          } else {
-            int giorniPassati = oggi.difference(dataInizio).inDays;
-            settimanaCorrente = (giorniPassati ~/ 7) + 1;
-            if (settimanaCorrente > settimane) settimanaCorrente = settimane;
-            testoSettimana = "Settimana attuale: $settimanaCorrente";
-          }
+        if (oggiSoloData.isBefore(dataInizio)) {
+          stato = "futuro";
+          testoSettimana = "Inizio programmato";
+        } else if (oggiSoloData.isAfter(dataScadenza)) {
+          stato = "passato";
+          testoSettimana = "Completato";
+        } else {
+          stato = "attivo";
+          int giorniPassati = oggiSoloData.difference(dataInizio).inDays;
+          settimanaCorrente = (giorniPassati ~/ 7) + 1;
+          if (settimanaCorrente > settimane) settimanaCorrente = settimane;
+          testoSettimana = "Settimana attuale: $settimanaCorrente";
         }
 
-        // Creiamo una mappa pulita con il cast corretto dei dati originali
         var pianoArricchito = {
           ...Map<String, dynamic>.from(p),
           'testoSettimana': testoSettimana,
           'settimanaCorrente': settimanaCorrente,
-          'isPassato': isPassato,
+          'stato': stato,
           'dataInizioFormattata': DateFormat('dd/MM/yyyy').format(dataInizio),
         };
 
-        if (isPassato) {
+        if (stato == "passato") {
           passati.add(pianoArricchito);
+        } else if (stato == "futuro") {
+          futuri.add(pianoArricchito);
         } else {
           attivi.add(pianoArricchito);
         }
       }
 
-      // Ordinamento per giorno della settimana
       const ordineGiorni = {
         "Lunedì": 1,
         "Martedì": 2,
@@ -102,11 +107,17 @@ class _AtletaPianiViewState extends State<AtletaPianiView> {
           ordineGiorni[b['day_of_week']] ?? 9,
         ),
       );
+      futuri.sort(
+        (a, b) => DateTime.parse(
+          a['start_date'],
+        ).compareTo(DateTime.parse(b['start_date'])),
+      );
 
       if (mounted) {
         setState(() {
           _pianiAttivi = attivi;
           _pianiPassati = passati;
+          _pianiFuturi = futuri;
           _isLoading = false;
         });
       }
@@ -153,44 +164,78 @@ class _AtletaPianiViewState extends State<AtletaPianiView> {
                   _buildSezioneTitolo("PIANI IN CORSO"),
                   const SizedBox(height: 15),
                   if (_pianiAttivi.isEmpty)
-                    _buildEmptyMsg("Nessun piano attivo al momento.")
+                    _buildEmptyMsg("Nessun allenamento disponibile.")
                   else
                     ..._pianiAttivi.map(
                       (p) => _buildCardPiano(Map<String, dynamic>.from(p)),
                     ),
 
-                  const SizedBox(height: 30),
-                  const Divider(thickness: 0.5),
-                  Center(
-                    child: TextButton.icon(
-                      onPressed: () =>
-                          setState(() => _mostraPassati = !_mostraPassati),
-                      icon: Icon(
-                        _mostraPassati
-                            ? Icons.keyboard_arrow_up
-                            : Icons.history,
-                        color: Colors.grey,
-                      ),
-                      label: Text(
-                        _mostraPassati
-                            ? "NASCONDI STORICO"
-                            : "VEDI STORICO PIANI",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                          fontSize: 12,
+                  // --- SEZIONE PIANI FUTURI ---
+                  if (_pianiFuturi.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    const Divider(thickness: 0.5),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () =>
+                            setState(() => _mostraFuturi = !_mostraFuturi),
+                        icon: Icon(
+                          _mostraFuturi ? Icons.keyboard_arrow_up : Icons.event,
+                          color: Colors.blueGrey,
+                          size: 20,
+                        ),
+                        label: Text(
+                          _mostraFuturi
+                              ? "NASCONDI PIANI FUTURI"
+                              : "VEDI PIANI FUTURI",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  if (_mostraPassati) ...[
-                    const SizedBox(height: 15),
-                    if (_pianiPassati.isEmpty)
-                      _buildEmptyMsg("Lo storico è vuoto.")
-                    else
+                    if (_mostraFuturi) ...[
+                      const SizedBox(height: 15),
+                      ..._pianiFuturi.map(
+                        (p) => _buildCardPiano(Map<String, dynamic>.from(p)),
+                      ),
+                    ],
+                  ],
+
+                  // --- SEZIONE STORICO ---
+                  if (_pianiPassati.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    const Divider(thickness: 0.5),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () =>
+                            setState(() => _mostraPassati = !_mostraPassati),
+                        icon: Icon(
+                          _mostraPassati
+                              ? Icons.keyboard_arrow_up
+                              : Icons.history,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        label: Text(
+                          _mostraPassati
+                              ? "NASCONDI STORICO"
+                              : "VEDI STORICO PIANI",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (_mostraPassati) ...[
+                      const SizedBox(height: 15),
                       ..._pianiPassati.map(
                         (p) => _buildCardPiano(Map<String, dynamic>.from(p)),
                       ),
+                    ],
                   ],
                   const SizedBox(height: 50),
                 ],
@@ -213,6 +258,7 @@ class _AtletaPianiViewState extends State<AtletaPianiView> {
 
   Widget _buildEmptyMsg(String msg) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
@@ -227,20 +273,26 @@ class _AtletaPianiViewState extends State<AtletaPianiView> {
   }
 
   Widget _buildCardPiano(Map<String, dynamic> piano) {
-    bool isPassato = piano['isPassato'] ?? false;
+    String stato = piano['stato'] ?? "attivo";
+    bool isPassato = stato == "passato";
+    bool isFuturo = stato == "futuro";
 
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isPassato ? Colors.grey.shade50 : Colors.white,
+        color: isPassato
+            ? Colors.grey.shade50
+            : (isFuturo ? const Color(0xFFF0F7FF) : Colors.white),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isPassato
               ? Colors.grey.shade200
-              : Colors.black.withOpacity(0.08),
+              : (isFuturo
+                    ? Colors.blue.shade100
+                    : Colors.black.withOpacity(0.08)),
         ),
-        boxShadow: isPassato
+        boxShadow: (isPassato || isFuturo)
             ? []
             : [
                 BoxShadow(
@@ -263,40 +315,73 @@ class _AtletaPianiViewState extends State<AtletaPianiView> {
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 17,
-                    color: isPassato ? Colors.grey : Colors.black,
+                    color: isPassato
+                        ? Colors.grey
+                        : (isFuturo ? Colors.blueGrey : Colors.black),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
+                // --- NUOVA IMPOSTAZIONE RICHIESTA ---
                 Row(
                   children: [
                     const Icon(
                       Icons.calendar_today,
-                      size: 14,
+                      size: 13,
                       color: Colors.grey,
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Text(
-                      "Inizio: ${piano['dataInizioFormattata']}",
-                      style: const TextStyle(fontSize: 13, color: Colors.grey),
+                      "Inizio previsto: ${piano['dataInizioFormattata']}",
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.timer_outlined,
+                      size: 13,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Durata: ${piano['duration_weeks']} settimane",
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                // ------------------------------------
                 if (piano['testoSettimana'] != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 10),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.blueAccent.withOpacity(0.1),
+                        color: isPassato
+                            ? Colors.grey.shade200
+                            : (isFuturo
+                                  ? Colors.blue.withOpacity(0.1)
+                                  : Colors.blueAccent.withOpacity(0.1)),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         piano['testoSettimana'],
-                        style: const TextStyle(
-                          color: Colors.blueAccent,
+                        style: TextStyle(
+                          color: isPassato
+                              ? Colors.grey
+                              : (isFuturo ? Colors.blue : Colors.blueAccent),
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -307,14 +392,14 @@ class _AtletaPianiViewState extends State<AtletaPianiView> {
             ),
           ),
           Material(
-            color: isPassato ? Colors.grey.shade300 : Colors.black,
+            color: isPassato
+                ? Colors.grey.shade300
+                : (isFuturo ? Colors.blue.shade300 : Colors.black),
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
               onTap: () {
-                // Assicuriamo il cast esplicito prima della chiamata
-                final pianoCorretto = Map<String, dynamic>.from(piano);
                 widget.vaiAListaEsercizi(
-                  pianoCorretto,
+                  Map<String, dynamic>.from(piano),
                   widget.nomeAtleta,
                   piano['settimanaCorrente'] ?? 1,
                 );

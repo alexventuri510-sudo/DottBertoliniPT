@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import '../services/database_service.dart'; // Il percorso dipende da dove si trova il file
 
-class PtHomeView extends StatelessWidget {
+class PtHomeView extends StatefulWidget {
   final String nome;
   final VoidCallback vaiAListaAtleti;
   final VoidCallback vaiAAggiungiAtleta;
   final VoidCallback vaiAProfilo;
+  final VoidCallback vaiAPianiInScadenza; // Nuova navigazione
 
   const PtHomeView({
     super.key,
@@ -12,7 +14,36 @@ class PtHomeView extends StatelessWidget {
     required this.vaiAListaAtleti,
     required this.vaiAAggiungiAtleta,
     required this.vaiAProfilo,
+    required this.vaiAPianiInScadenza,
   });
+
+  @override
+  State<PtHomeView> createState() => _PtHomeViewState();
+}
+
+class _PtHomeViewState extends State<PtHomeView> {
+  int pianiScadenzaCount = 0;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _caricaPianiInScadenza();
+  }
+
+  Future<void> _caricaPianiInScadenza() async {
+    try {
+      final piani = await DatabaseService.getPianiInScadenza();
+      if (mounted) {
+        setState(() {
+          pianiScadenzaCount = piani.length;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,13 +74,26 @@ class PtHomeView extends StatelessWidget {
               ),
               const SizedBox(height: 15),
 
+              // NUOVA CARD: Piani in Scadenza
+              _buildDashboardCard(
+                titolo: "Piani in Scadenza",
+                sottotitolo:
+                    "Piani in scadenza: $pianiScadenzaCount", // MODIFICA EFFETTUATA QUI
+                icona: Icons.notification_important_rounded,
+                colore: Colors.orange.shade700,
+                azione: widget.vaiAPianiInScadenza,
+                badgeCount: pianiScadenzaCount, // Passiamo il conteggio
+              ),
+
+              const SizedBox(height: 15),
+
               // Card: Visualizza Atleti
               _buildDashboardCard(
                 titolo: "I tuoi Atleti",
                 sottotitolo: "Gestisci schede e progressi",
                 icona: Icons.groups_rounded,
                 colore: Colors.black,
-                azione: vaiAListaAtleti,
+                azione: widget.vaiAListaAtleti,
               ),
 
               const SizedBox(height: 15),
@@ -60,7 +104,7 @@ class PtHomeView extends StatelessWidget {
                 sottotitolo: "Crea account e assegna piani",
                 icona: Icons.person_add_alt_1_rounded,
                 colore: Colors.grey.shade800,
-                azione: vaiAAggiungiAtleta,
+                azione: widget.vaiAAggiungiAtleta,
               ),
 
               const SizedBox(height: 40),
@@ -84,7 +128,7 @@ class PtHomeView extends StatelessWidget {
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
               Text(
-                "Coach $nome",
+                "Coach ${widget.nome}",
                 style: const TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.w900,
@@ -95,7 +139,7 @@ class PtHomeView extends StatelessWidget {
           ),
         ),
         GestureDetector(
-          onTap: vaiAProfilo,
+          onTap: widget.vaiAProfilo,
           child: Hero(
             tag: 'profile_avatar',
             child: CircleAvatar(
@@ -119,6 +163,7 @@ class PtHomeView extends StatelessWidget {
     required IconData icona,
     required Color colore,
     required VoidCallback azione,
+    int badgeCount = 0, // Aggiunto per gestire il pallino rosso
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -141,13 +186,38 @@ class PtHomeView extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colore,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Icon(icona, color: Colors.white, size: 28),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colore,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Icon(icona, color: Colors.white, size: 28),
+                    ),
+                    if (badgeCount > 0)
+                      Positioned(
+                        right: -5,
+                        top: -5,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            "$badgeCount",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(width: 20),
                 Expanded(

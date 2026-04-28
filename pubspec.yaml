@@ -10,6 +10,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  
+  # --- ESSENZIALE PER IL CALENDARIO IN ITALIANO ---
+  flutter_localizations:
+    sdk: flutter
 
   # Icone per stile iOS
   cupertino_icons: ^1.0.8
@@ -19,7 +23,7 @@ dependencies:
   supabase_flutter: ^2.6.0
 
   # Gestione date e formattazione (es. dd/MM/yyyy)
-  intl: ^0.19.0
+  intl: 0.20.2
 
   # Per aprire i link dei video tutorial
   url_launcher: ^6.3.0
@@ -34,7 +38,10 @@ dev_dependencies:
 flutter:
   # Abilita le icone Material Design (essenziale)
   uses-material-design: true
+  
+  # Necessario per la gestione corretta delle traduzioni di sistema
+  generate: true
 
   # Se avrai immagini in futuro, le aggiungerai qui sotto
   # assets:
-  #   - assets/images/ logo.png
+  #   - assets/images/logo.png

@@ -7,8 +7,7 @@ class AtletaHomeView extends StatefulWidget {
   final VoidCallback logout;
   final VoidCallback vaiAPianiPersonali;
   final VoidCallback vaiAProfilo;
-  final Function(Map<String, dynamic>, String, int, String)
-  vaiAEsercizi; // Aggiunto parametro data
+  final Function(Map<String, dynamic>, String, int, String) vaiAEsercizi;
 
   const AtletaHomeView({
     super.key,
@@ -102,18 +101,33 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
   }
 
   Future<void> _selezionaData() async {
-    final DateTime? scelta = await showDatePicker(
-      context: context,
-      initialDate: _dataVisualizzata,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-      helpText: "SELEZIONA MESE E ANNO",
-    );
+    try {
+      final DateTime? scelta = await showDatePicker(
+        context: context,
+        initialDate: _dataVisualizzata,
+        firstDate: DateTime(2020),
+        lastDate: DateTime(2100),
+        helpText: "SELEZIONA MESE E ANNO",
+        locale: const Locale('it', 'IT'),
+      );
 
-    if (scelta != null) {
-      setState(() {
-        _dataVisualizzata = DateTime(scelta.year, scelta.month);
-      });
+      if (scelta != null) {
+        setState(() {
+          _dataVisualizzata = DateTime(scelta.year, scelta.month);
+        });
+      }
+    } catch (e) {
+      // Se non hai ancora configurato i delegati in main.dart,
+      // il calendario si aprirà in inglese invece di crashare
+      final DateTime? scelta = await showDatePicker(
+        context: context,
+        initialDate: _dataVisualizzata,
+        firstDate: DateTime(2020),
+        lastDate: DateTime(2100),
+      );
+      if (scelta != null) {
+        setState(() => _dataVisualizzata = DateTime(scelta.year, scelta.month));
+      }
     }
   }
 
@@ -321,12 +335,14 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
       _dataVisualizzata.year,
       _dataVisualizzata.month,
     );
-    final firstDayWeekday = DateTime(
+    final firstDayOfMonth = DateTime(
       _dataVisualizzata.year,
       _dataVisualizzata.month,
       1,
-    ).weekday;
-    final firstDayOffset = firstDayWeekday - 1;
+    );
+
+    // Correzione lunedì: weekday va da 1 (Lun) a 7 (Dom)
+    int firstDayOffset = firstDayOfMonth.weekday - 1;
 
     Map<int, Map<String, dynamic>> allenamentiDelMese = {};
     for (var p in _pianiAtleta) {
@@ -385,12 +401,17 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
           child: Container(
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isToday
-                  ? Colors.blueAccent
-                  : (hasWorkout
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.transparent),
+              // Sfondo verde compare se c'è allenamento (anche per oggi)
+              color: hasWorkout
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
+              border: isToday
+                  ? Border.all(
+                      color: Colors.blueAccent.withOpacity(0.3),
+                      width: 1,
+                    )
+                  : null,
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -399,19 +420,19 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
                   "$giorno",
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: (isToday || hasWorkout)
-                        ? FontWeight.w800
-                        : FontWeight.w500,
+                    fontWeight: isToday
+                        ? FontWeight.w900
+                        : (hasWorkout ? FontWeight.w800 : FontWeight.w500),
                     color: isToday
-                        ? Colors.white
+                        ? Colors.blueAccent
                         : (hasWorkout ? Colors.green.shade700 : Colors.black87),
                   ),
                 ),
-                if (hasWorkout && !isToday)
+                if (hasWorkout)
                   Container(
                     margin: const EdgeInsets.only(top: 2),
-                    width: 4,
-                    height: 4,
+                    width: 5,
+                    height: 5,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.green,

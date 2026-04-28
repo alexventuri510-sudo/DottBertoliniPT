@@ -24,6 +24,7 @@ class PianiAllenamentoView extends StatefulWidget {
 
 class _PianiAllenamentoViewState extends State<PianiAllenamentoView> {
   bool _mostraPassati = false;
+  bool _mostraFuturi = false;
   late Future<List<dynamic>> _futurePiani;
 
   final Map<String, int> _ordineGiorni = {
@@ -42,18 +43,14 @@ class _PianiAllenamentoViewState extends State<PianiAllenamentoView> {
     _caricaPiani();
   }
 
-  // --- MODIFICA FONDAMENTALE: Metodo per ricaricare ---
   void _caricaPiani() {
     setState(() {
       _futurePiani = DatabaseService.getPianiAtleta(widget.atletaId);
     });
   }
 
-  // Gestisce la navigazione al "Crea Piano" e ricarica al ritorno
   Future<void> _gestisciNuovoPiano() async {
-    // Aspettiamo che la navigazione finisca (quando l'utente preme indietro o salva)
     await widget.vaiACreaPiano(widget.atletaId, widget.nomeAtleta);
-    // Una volta tornati in questa pagina, ricarichiamo i dati
     _caricaPiani();
   }
 
@@ -97,251 +94,399 @@ class _PianiAllenamentoViewState extends State<PianiAllenamentoView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton.icon(
-                    onPressed: widget.vaiIndietro,
-                    icon: const Icon(Icons.arrow_back, color: Colors.black),
-                    label: const Text(
-                      "LISTA ATLETI",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
-                  Text(
-                    widget.nomeAtleta.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(),
-
-              // --- PULSANTE AGGIORNATO ---
-              ElevatedButton(
-                onPressed: _gestisciNuovoPiano, // Usa il nuovo metodo asincrono
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 45),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.black,
+            size: 20,
+          ),
+          onPressed: widget.vaiIndietro,
+        ),
+        title: Text(
+          "PIANI DI ${widget.nomeAtleta.toUpperCase()}",
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w900,
+            fontSize: 16,
+            letterSpacing: -0.5,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+            child: ElevatedButton(
+              onPressed: _gestisciNuovoPiano,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                child: const Text("NUOVO PIANO"),
               ),
+              child: const Text(
+                "CREA NUOVO PIANO",
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async => _caricaPiani(),
+              color: Colors.black,
+              child: FutureBuilder<List<dynamic>>(
+                future: _futurePiani,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: Colors.black),
+                    );
+                  }
 
-              const SizedBox(height: 20),
-              Expanded(
-                child: RefreshIndicator(
-                  // Aggiunto per permettere il refresh manuale
-                  onRefresh: () async => _caricaPiani(),
-                  child: FutureBuilder<List<dynamic>>(
-                    future: _futurePiani,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(color: Colors.black),
-                        );
-                      }
+                  final piani = snapshot.data ?? [];
+                  if (piani.isEmpty) {
+                    return _buildEmptyMsg(
+                      "Nessun allenamento programmato per questo atleta.",
+                    );
+                  }
 
-                      final piani = snapshot.data ?? [];
-                      if (piani.isEmpty) {
-                        return ListView(
-                          // Usiamo ListView per far funzionare il RefreshIndicator
-                          children: const [
-                            SizedBox(height: 50),
-                            Center(
-                              child: Text(
-                                "Nessun piano creato.",
-                                style: TextStyle(fontStyle: FontStyle.italic),
-                              ),
+                  List<dynamic> attivi = [];
+                  List<dynamic> passati = [];
+                  List<dynamic> futuri = [];
+                  DateTime oggi = DateTime.now();
+                  DateTime oggiSoloData = DateTime(
+                    oggi.year,
+                    oggi.month,
+                    oggi.day,
+                  );
+
+                  for (var p in piani) {
+                    DateTime startDate = DateTime.parse(p['start_date']);
+                    int durationWeeks = p['duration_weeks'] ?? 0;
+                    DateTime scadenza = startDate.add(
+                      Duration(days: (durationWeeks * 7) - 1),
+                    );
+
+                    if (oggiSoloData.isBefore(startDate)) {
+                      futuri.add(p);
+                    } else if (oggiSoloData.isAfter(scadenza)) {
+                      passati.add(p);
+                    } else {
+                      attivi.add(p);
+                    }
+                  }
+
+                  attivi.sort(
+                    (a, b) => (_ordineGiorni[a['day_of_week']] ?? 99).compareTo(
+                      _ordineGiorni[b['day_of_week']] ?? 99,
+                    ),
+                  );
+                  futuri.sort(
+                    (a, b) => DateTime.parse(
+                      a['start_date'],
+                    ).compareTo(DateTime.parse(b['start_date'])),
+                  );
+
+                  return ListView(
+                    padding: const EdgeInsets.all(25),
+                    children: [
+                      _buildSezioneTitolo("PIANI IN CORSO"),
+                      const SizedBox(height: 15),
+                      if (attivi.isEmpty)
+                        _buildEmptyMsg("Nessun piano attivo al momento.")
+                      else
+                        ...attivi.map(
+                          (p) => _buildCardPiano(p, "attivo", oggiSoloData),
+                        ),
+
+                      if (futuri.isNotEmpty) ...[
+                        const SizedBox(height: 20),
+                        const Divider(thickness: 0.5),
+                        Center(
+                          child: TextButton.icon(
+                            onPressed: () =>
+                                setState(() => _mostraFuturi = !_mostraFuturi),
+                            icon: Icon(
+                              _mostraFuturi
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.event,
+                              color: Colors.blueGrey,
+                              size: 20,
                             ),
-                          ],
-                        );
-                      }
-
-                      List<dynamic> attivi = [];
-                      List<dynamic> passati = [];
-                      DateTime oggi = DateTime.now();
-                      DateTime oggiSoloData = DateTime(
-                        oggi.year,
-                        oggi.month,
-                        oggi.day,
-                      );
-
-                      for (var p in piani) {
-                        DateTime startDate = DateTime.parse(p['start_date']);
-                        int durationWeeks = p['duration_weeks'] ?? 0;
-                        DateTime scadenza = startDate.add(
-                          Duration(days: durationWeeks * 7),
-                        );
-
-                        if (oggi.isAfter(scadenza)) {
-                          passati.add(p);
-                        } else {
-                          attivi.add(p);
-                        }
-                      }
-
-                      attivi.sort(
-                        (a, b) => (_ordineGiorni[a['day_of_week']] ?? 99)
-                            .compareTo(_ordineGiorni[b['day_of_week']] ?? 99),
-                      );
-
-                      return ListView(
-                        children: [
-                          const Text(
-                            "PIANI ATTIVI",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                              fontSize: 14,
+                            label: Text(
+                              _mostraFuturi
+                                  ? "NASCONDI PIANI FUTURI"
+                                  : "VEDI PIANI FUTURI",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueGrey,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          ...attivi.map(
-                            (p) => _buildCardPiano(p, false, oggiSoloData),
+                        ),
+                        if (_mostraFuturi) ...[
+                          const SizedBox(height: 15),
+                          ...futuri.map(
+                            (p) => _buildCardPiano(p, "futuro", oggiSoloData),
                           ),
-
-                          if (passati.isNotEmpty) ...[
-                            const SizedBox(height: 20),
-                            TextButton(
-                              onPressed: () => setState(
-                                () => _mostraPassati = !_mostraPassati,
-                              ),
-                              child: Text(
-                                _mostraPassati
-                                    ? "NASCONDI STORICO"
-                                    : "MOSTRA STORICO PIANI",
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                            ),
-                            if (_mostraPassati)
-                              ...passati.map(
-                                (p) => _buildCardPiano(p, true, oggiSoloData),
-                              ),
-                          ],
                         ],
-                      );
-                    },
+                      ],
+
+                      if (passati.isNotEmpty) ...[
+                        const SizedBox(height: 20),
+                        const Divider(thickness: 0.5),
+                        Center(
+                          child: TextButton.icon(
+                            onPressed: () => setState(
+                              () => _mostraPassati = !_mostraPassati,
+                            ),
+                            icon: Icon(
+                              _mostraPassati
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.history,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                            label: Text(
+                              _mostraPassati
+                                  ? "NASCONDI STORICO"
+                                  : "VEDI STORICO PIANI",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (_mostraPassati) ...[
+                          const SizedBox(height: 15),
+                          ...passati.map(
+                            (p) => _buildCardPiano(p, "passato", oggiSoloData),
+                          ),
+                        ],
+                      ],
+                      const SizedBox(height: 50),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSezioneTitolo(String titolo) {
+    return Text(
+      titolo,
+      style: const TextStyle(
+        fontWeight: FontWeight.w800,
+        color: Colors.blueGrey,
+        fontSize: 12,
+        letterSpacing: 1.1,
+      ),
+    );
+  }
+
+  Widget _buildEmptyMsg(String msg) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Text(
+        msg,
+        style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildCardPiano(dynamic p, String stato, DateTime oggi) {
+    DateTime startDate = DateTime.parse(p['start_date']);
+    String dataFormattata = DateFormat('dd/MM/yyyy').format(startDate);
+    int settimaneTotali = p['duration_weeks'] ?? 0;
+    bool isPassato = stato == "passato";
+    bool isFuturo = stato == "futuro";
+
+    String badgeTesto = "";
+    if (stato == "attivo") {
+      int giorniPassati = oggi.difference(startDate).inDays;
+      int settCalc = (giorniPassati ~/ 7) + 1;
+      badgeTesto =
+          "Settimana attuale: ${settCalc > settimaneTotali ? settimaneTotali : settCalc}";
+    } else if (isFuturo) {
+      badgeTesto = "Inizio programmato";
+    } else {
+      badgeTesto = "Completato";
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isPassato
+            ? Colors.grey.shade50
+            : (isFuturo ? const Color(0xFFF0F7FF) : Colors.white),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isPassato
+              ? Colors.grey.shade200
+              : (isFuturo
+                    ? Colors.blue.shade100
+                    : Colors.black.withOpacity(0.08)),
+        ),
+        boxShadow: (isPassato || isFuturo)
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      p['day_of_week'].toString().toUpperCase(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 17,
+                        color: isPassato
+                            ? Colors.grey
+                            : (isFuturo ? Colors.blueGrey : Colors.black),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_today,
+                          size: 13,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Inizio previsto: $dataFormattata",
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.timer_outlined,
+                          size: 13,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Durata: $settimaneTotali settimane",
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isPassato
+                            ? Colors.grey.shade200
+                            : (isFuturo
+                                  ? Colors.blue.withOpacity(0.1)
+                                  : Colors.blueAccent.withOpacity(0.1)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        badgeTesto,
+                        style: TextStyle(
+                          color: isPassato
+                              ? Colors.grey
+                              : (isFuturo ? Colors.blue : Colors.blueAccent),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Pulsante VEDI (Nero o Blu come nell'immagine)
+              Material(
+                color: isPassato
+                    ? Colors.grey.shade300
+                    : (isFuturo ? Colors.blue.shade300 : Colors.black),
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  onTap: () => widget.vaiAListaEsercizi(p),
+                  borderRadius: BorderRadius.circular(12),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Icon(
+                      Icons.arrow_forward_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCardPiano(dynamic p, bool isPassato, DateTime oggi) {
-    DateTime startDate = DateTime.parse(p['start_date']);
-    String dataFormattata = DateFormat('dd/MM/yyyy').format(startDate);
-    int settimaneTotali = p['duration_weeks'] ?? 0;
-    String testoSettimana = "";
-
-    if (!isPassato) {
-      if (oggi.isBefore(startDate)) {
-        testoSettimana = "Settimana attuale: - (Non ancora iniziato)";
-      } else {
-        int giorniPassati = oggi.difference(startDate).inDays;
-        int settCalc = (giorniPassati ~/ 7) + 1;
-        testoSettimana =
-            "Settimana attuale: ${settCalc > settimaneTotali ? settimaneTotali : settCalc}";
-      }
-    }
-
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade300),
-      ),
-      color: isPassato ? Colors.grey[100] : Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        p['day_of_week'].toString().toUpperCase(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: isPassato ? Colors.grey : Colors.blue,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "Inizio: $dataFormattata",
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      if (testoSettimana.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          testoSettimana,
-                          style: TextStyle(
-                            color: isPassato ? Colors.grey : Colors.orange,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                      Text(
-                        "Durata: $settimaneTotali sett.",
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right, size: 30),
-                      onPressed: () => widget.vaiAListaEsercizi(p),
-                    ),
-                    const Text(
-                      "VEDI",
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const Divider(),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () =>
-                    _confermaEliminazione(p['id'].toString(), p['day_of_week']),
-                icon: const Icon(Icons.delete_outline, size: 18),
-                label: const Text("ELIMINA"),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
+          const SizedBox(height: 10),
+          const Divider(height: 20),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () =>
+                  _confermaEliminazione(p['id'].toString(), p['day_of_week']),
+              icon: const Icon(Icons.delete_outline, size: 16),
+              label: const Text(
+                "ELIMINA PIANO",
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red.shade400,
+                padding: EdgeInsets.zero,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

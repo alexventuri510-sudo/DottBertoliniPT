@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
 
 class AtletaModificaDettaglioEsercizioView extends StatefulWidget {
   final List<dynamic> listaEsercizi;
@@ -28,6 +29,68 @@ class _AtletaModificaDettaglioEsercizioViewState
   final List<TextEditingController> _controllersKg = [];
   final List<TextEditingController> _controllersReps = [];
   final TextEditingController _controllerNote = TextEditingController();
+
+  // --- LOGICA CRONOMETRO PROFESSIONALE ---
+  bool _timerEspanso = false;
+  Timer? _timer;
+  final ValueNotifier<int> _millisecondiTrascorsi = ValueNotifier<int>(0);
+  bool _isTimerRunning = false;
+
+  // Variabili per il calcolo del tempo reale
+  DateTime? _startTime;
+  int _precedentiMillisecondi = 0;
+
+  void _toggleTimer() {
+    setState(() {
+      _timerEspanso = !_timerEspanso;
+    });
+  }
+
+  void _startTimer() {
+    if (_isTimerRunning) return;
+    _isTimerRunning = true;
+
+    // Memorizzo l'istante esatto di inizio
+    _startTime = DateTime.now();
+
+    _timer = Timer.periodic(const Duration(milliseconds: 30), (timer) {
+      // Calcolo la differenza reale tra ora e quando ho premuto play
+      final now = DateTime.now();
+      final differenza = now.difference(_startTime!).inMilliseconds;
+
+      // Aggiorno il contatore sommano il tempo della sessione attuale a quelle precedenti
+      _millisecondiTrascorsi.value = _precedentiMillisecondi + differenza;
+    });
+    setState(() {});
+  }
+
+  void _stopTimer() {
+    if (!_isTimerRunning) return;
+    _timer?.cancel();
+    _isTimerRunning = false;
+    // Salvo il tempo accumulato per poter riprendere correttamente
+    _precedentiMillisecondi = _millisecondiTrascorsi.value;
+    setState(() {});
+  }
+
+  void _resetTimer() {
+    _stopTimer();
+    _precedentiMillisecondi = 0;
+    _millisecondiTrascorsi.value = 0;
+  }
+
+  String _formatTime(int milliseconds) {
+    int minutes = (milliseconds ~/ 60000);
+    int seconds = (milliseconds ~/ 1000) % 60;
+    int hundreds = (milliseconds % 1000) ~/ 10;
+
+    String m = minutes.toString().padLeft(2, '0');
+    String s = seconds.toString().padLeft(2, '0');
+    String h = hundreds.toString().padLeft(2, '0');
+
+    return "$m:$s,$h";
+  }
+  // -------------------------
 
   @override
   void initState() {
@@ -97,6 +160,8 @@ class _AtletaModificaDettaglioEsercizioViewState
 
   @override
   void dispose() {
+    _timer?.cancel();
+    _millisecondiTrascorsi.dispose();
     for (var c in _controllersKg) {
       c.dispose();
     }
@@ -120,7 +185,6 @@ class _AtletaModificaDettaglioEsercizioViewState
     List<String> pesiScorsi = (dati['series_weights_scorsi']?.toString() ?? "")
         .split(',');
 
-    // Logica navigazione
     bool isPrimo = widget.indiceAttuale == 0;
     bool isUltimo = widget.indiceAttuale == widget.listaEsercizi.length - 1;
 
@@ -128,6 +192,7 @@ class _AtletaModificaDettaglioEsercizioViewState
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
+        _resetTimer();
         Navigator.of(context).pop(true);
       },
       child: Scaffold(
@@ -141,7 +206,10 @@ class _AtletaModificaDettaglioEsercizioViewState
               color: Colors.blue,
               size: 28,
             ),
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () {
+              _resetTimer();
+              Navigator.of(context).pop(true);
+            },
           ),
           title: const Text(
             "LOG SESSIONE",
@@ -159,7 +227,6 @@ class _AtletaModificaDettaglioEsercizioViewState
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Column(
               children: [
-                // INFO TRAINER
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -205,8 +272,6 @@ class _AtletaModificaDettaglioEsercizioViewState
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // LOG ATLETA
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -320,7 +385,6 @@ class _AtletaModificaDettaglioEsercizioViewState
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 if (videoLink.isNotEmpty)
                   SizedBox(
                     width: double.infinity,
@@ -339,9 +403,93 @@ class _AtletaModificaDettaglioEsercizioViewState
                     ),
                   ),
 
-                const SizedBox(height: 30),
+                // --- SEZIONE CRONOMETRO AGGIORNATA ---
+                const SizedBox(height: 15),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        onTap: _toggleTimer,
+                        leading: const Icon(
+                          Icons.timer,
+                          color: Colors.blueGrey,
+                        ),
+                        title: const Text(
+                          "CRONOMETRO RECUPERO",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey,
+                          ),
+                        ),
+                        trailing: Icon(
+                          _timerEspanso
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: Colors.blueGrey,
+                        ),
+                      ),
+                      if (_timerEspanso)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: 25,
+                            left: 20,
+                            right: 20,
+                          ),
+                          child: Column(
+                            children: [
+                              ValueListenableBuilder<int>(
+                                valueListenable: _millisecondiTrascorsi,
+                                builder: (context, value, child) {
+                                  return Text(
+                                    _formatTime(value),
+                                    style: const TextStyle(
+                                      fontSize: 42,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 2,
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (!_isTimerRunning)
+                                    _timerActionButton(
+                                      icon: Icons.play_arrow,
+                                      color: Colors.green,
+                                      onPressed: _startTimer,
+                                      size: 35,
+                                    )
+                                  else
+                                    _timerActionButton(
+                                      icon: Icons.pause,
+                                      color: Colors.blue,
+                                      onPressed: _stopTimer,
+                                      size: 35,
+                                    ),
+                                  const SizedBox(width: 40),
+                                  _timerActionButton(
+                                    icon: Icons.refresh,
+                                    color: Colors.red,
+                                    onPressed: _resetTimer,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
 
-                // NAVIGAZIONE
+                const SizedBox(height: 30),
                 Row(
                   children: [
                     Expanded(
@@ -349,10 +497,21 @@ class _AtletaModificaDettaglioEsercizioViewState
                           ? ElevatedButton.icon(
                               onPressed: () {
                                 _eseguiSalvataggio();
-                                widget.cambiaEsercizio(
-                                  widget.indiceAttuale - 1,
+                                _resetTimer();
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        AtletaModificaDettaglioEsercizioView(
+                                          listaEsercizi: widget.listaEsercizi,
+                                          indiceAttuale:
+                                              widget.indiceAttuale - 1,
+                                          vaiIndietro: widget.vaiIndietro,
+                                          salvaDati: widget.salvaDati,
+                                          cambiaEsercizio:
+                                              widget.cambiaEsercizio,
+                                        ),
+                                  ),
                                 );
-                                setState(() => _inizializzaCampi());
                               },
                               icon: const Icon(Icons.chevron_left),
                               label: const Text("PRECEDENTE"),
@@ -375,7 +534,7 @@ class _AtletaModificaDettaglioEsercizioViewState
                           ? ElevatedButton.icon(
                               onPressed: () {
                                 _eseguiSalvataggio();
-                                // Torna indietro alla visualizzazione AtletaPianoXView
+                                _resetTimer();
                                 Navigator.of(context).pop(true);
                               },
                               icon: const Icon(Icons.check_circle_outline),
@@ -394,10 +553,21 @@ class _AtletaModificaDettaglioEsercizioViewState
                           : ElevatedButton(
                               onPressed: () {
                                 _eseguiSalvataggio();
-                                widget.cambiaEsercizio(
-                                  widget.indiceAttuale + 1,
+                                _resetTimer();
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        AtletaModificaDettaglioEsercizioView(
+                                          listaEsercizi: widget.listaEsercizi,
+                                          indiceAttuale:
+                                              widget.indiceAttuale + 1,
+                                          vaiIndietro: widget.vaiIndietro,
+                                          salvaDati: widget.salvaDati,
+                                          cambiaEsercizio:
+                                              widget.cambiaEsercizio,
+                                        ),
+                                  ),
                                 );
-                                setState(() => _inizializzaCampi());
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
@@ -426,6 +596,33 @@ class _AtletaModificaDettaglioEsercizioViewState
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _timerActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+    double size = 28,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.4),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(icon, size: size),
+        color: Colors.white,
+        padding: const EdgeInsets.all(12),
       ),
     );
   }

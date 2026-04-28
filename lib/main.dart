@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Necessario per bloccare l'orientamento
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/database_service.dart';
+
+// --- AGGIUNTI PER LOCALIZZAZIONE ITALIANA ---
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 // --- IMPORT VISTE ---
 import 'pagine/login_view.dart';
@@ -25,6 +28,7 @@ import 'pagine/atleta_dettaglio_esercizio_view.dart';
 import 'pagine/atleta_modifica_dettaglio_esercizio_view.dart';
 import 'pagine/atleta_profilo_view.dart';
 import 'pagine/atleta_lista_esercizi_view.dart';
+import 'pagine/pt_piani_in_scadenza_view.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -65,12 +69,10 @@ class _MyAppState extends State<MyApp> {
     _ascoltaRecuperoPassword();
   }
 
-  // --- LOGICA RECUPERO PASSWORD AGGIORNATA ---
   void _ascoltaRecuperoPassword() {
     Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.passwordRecovery) {
-        // Forza la navigazione sulla pagina NuovaPassword e pulisce tutto il resto
         navigatorKey.currentState?.pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (context) => NuovaPasswordView(vaiALogin: _impostaLogin),
@@ -81,15 +83,10 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  // --- LOGICA CHECK INIZIALE AGGIORNATA ---
   Future<void> _checkAuthIniziale() async {
-    // Aspettiamo un breve istante per dare tempo al sistema di intercettare il link di recupero
     await Future.delayed(const Duration(milliseconds: 500));
-
     final session = Supabase.instance.client.auth.currentSession;
 
-    // Se l'URL contiene informazioni di recupero password, non caricare la Home qui.
-    // Ci penserà l'ascoltatore _ascoltaRecuperoPassword()
     if (Uri.base.toString().contains('type=recovery')) {
       return;
     }
@@ -164,6 +161,7 @@ class _MyAppState extends State<MyApp> {
           vaiAListaAtleti: _navigaAListaAtleti,
           vaiAAggiungiAtleta: _navigaAAggiungiAtleta,
           vaiAProfilo: () => _navigaAProfiloTrainer(userId),
+          vaiAPianiInScadenza: _navigaAPianiInScadenza,
         );
       } else {
         _schermataAttuale = AtletaHomeView(
@@ -172,20 +170,20 @@ class _MyAppState extends State<MyApp> {
           logout: _eseguiLogout,
           vaiAPianiPersonali: () => _navigaAPianiAtleta(userId, nome),
           vaiAProfilo: () => _navigaAProfiloAtleta(userId),
-          vaiAEsercizi:
-              (piano, nomeA, sett, dataStr) => // Aggiunto dataStr
-              _navigaAPianoX(
-                piano,
-                nomeA,
-                sett,
-                dataStr,
-              ), // Aggiunto dataStr
+          vaiAEsercizi: (piano, nomeA, sett, dataStr) =>
+              _navigaAPianoX(piano, nomeA, sett, dataStr),
         );
       }
     });
   }
 
   // --- NAVIGAZIONE PT ---
+  void _navigaAPianiInScadenza() {
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(builder: (context) => const PtPianiInScadenzaView()),
+    );
+  }
+
   void _navigaAListaAtleti() {
     navigatorKey.currentState?.push(
       MaterialPageRoute(
@@ -302,7 +300,6 @@ class _MyAppState extends State<MyApp> {
   }
 
   // --- NAVIGAZIONE ATLETA ---
-
   void _navigaAPianiAtleta(String userId, String nome) {
     navigatorKey.currentState?.push(
       MaterialPageRoute(
@@ -355,7 +352,7 @@ class _MyAppState extends State<MyApp> {
     Map<String, dynamic> piano,
     String nomeAtleta,
     int settimana,
-    String dataStr, // Aggiunto parametro
+    String dataStr,
   ) async {
     await navigatorKey.currentState?.push(
       MaterialPageRoute(
@@ -363,11 +360,36 @@ class _MyAppState extends State<MyApp> {
           planId: piano['id'].toString(),
           settimana: settimana,
           nomeAtleta: nomeAtleta,
-          dataPianoStr: dataStr, // Usa dataStr passato dalla Home
+          dataPianoStr: dataStr,
           vaiIndietro: () => navigatorKey.currentState?.pop(),
           vaiADettaglioEsercizio: (lista, indice, sett) async {
-            await _navigaAModificaDettaglioAtleta(lista, indice);
+            final result = await _navigaAModificaDettaglioAtleta(lista, indice);
+            return result ?? false;
           },
+        ),
+      ),
+    );
+  }
+
+  Future<bool?> _navigaAModificaDettaglioAtleta(
+    List<dynamic> lista,
+    int indice,
+  ) async {
+    return await navigatorKey.currentState?.push<bool>(
+      MaterialPageRoute(
+        builder: (context) => AtletaModificaDettaglioEsercizioView(
+          listaEsercizi: lista,
+          indiceAttuale: indice,
+          vaiIndietro: () => navigatorKey.currentState?.pop(true),
+          salvaDati: (id, pesi, reps, note) async {
+            await DatabaseService.updateDatiAllenamentoAtleta(
+              id,
+              pesi,
+              reps,
+              note,
+            );
+          },
+          cambiaEsercizio: (nuovoIndice) {},
         ),
       ),
     );
@@ -389,56 +411,23 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Future<void> _navigaAModificaDettaglioAtleta(
-    List<dynamic> lista,
-    int indice,
-  ) async {
-    await navigatorKey.currentState?.push(
-      MaterialPageRoute(
-        builder: (context) => AtletaModificaDettaglioEsercizioView(
-          listaEsercizi: lista,
-          indiceAttuale: indice,
-          vaiIndietro: () => navigatorKey.currentState?.pop(),
-          salvaDati: (id, pesi, reps, note) async {
-            await DatabaseService.updateDatiAllenamentoAtleta(
-              id,
-              pesi,
-              reps,
-              note,
-            );
-          },
-          cambiaEsercizio: (nuovoIndice) {
-            navigatorKey.currentState?.pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => AtletaModificaDettaglioEsercizioView(
-                  listaEsercizi: lista,
-                  indiceAttuale: nuovoIndice,
-                  vaiIndietro: () => navigatorKey.currentState?.pop(),
-                  salvaDati: (id, pesi, reps, note) async {
-                    await DatabaseService.updateDatiAllenamentoAtleta(
-                      id,
-                      pesi,
-                      reps,
-                      note,
-                    );
-                  },
-                  cambiaEsercizio: (idx) =>
-                      _navigaAModificaDettaglioAtleta(lista, idx),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
       title: 'DottBertoliniPT',
       debugShowCheckedModeBanner: false,
+
+      // --- CONFIGURAZIONE LOCALIZZAZIONE ---
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('it', 'IT'), // Italiano
+      ],
+
       theme: ThemeData(
         useMaterial3: true,
         primaryColor: Colors.black,

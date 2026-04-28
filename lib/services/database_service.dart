@@ -50,7 +50,7 @@ class DatabaseService {
     required String nome,
     required String cognome,
     required String ruolo,
-    required bool accettazioneTermini, // <--- AGGIUNTO
+    required bool accettazioneTermini,
   }) async {
     try {
       final resAuth = await supabase.auth.signUp(
@@ -66,9 +66,8 @@ class DatabaseService {
           'email': email,
           'role': ruolo,
           'unique_code': codice,
-          'accettazione_termini': accettazioneTermini, // <--- AGGIUNTO
-          'data_accettazione': DateTime.now()
-              .toIso8601String(), // <--- AGGIUNTO
+          'accettazione_termini': accettazioneTermini,
+          'data_accettazione': DateTime.now().toIso8601String(),
         });
         return codice;
       }
@@ -189,6 +188,48 @@ class DatabaseService {
           .eq('client_id', atletaId)
           .order('start_date', ascending: false);
     } catch (e) {
+      return [];
+    }
+  }
+
+  // --- FUNZIONE PIANI IN SCADENZA (NOVITÀ) ---
+  static Future<List<Map<String, dynamic>>> getPianiInScadenza() async {
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) return [];
+
+      // Recuperiamo i piani con le info dell'atleta (profiles)
+      final response = await supabase
+          .from('workout_plans')
+          .select(
+            '*, profiles!workout_plans_client_id_fkey(first_name, last_name)',
+          )
+          .eq('trainer_id', userId);
+
+      final List<Map<String, dynamic>> inScadenza = [];
+      final DateTime oggi = DateTime.now();
+      final DateTime oggiSoloData = DateTime(oggi.year, oggi.month, oggi.day);
+
+      for (var p in response) {
+        DateTime startDate = DateTime.parse(p['start_date']);
+        int durataTotale = p['duration_weeks'] ?? 0;
+
+        int giorniPassati = oggiSoloData.difference(startDate).inDays;
+        int settimanaAttuale = (giorniPassati ~/ 7) + 1;
+
+        // Un piano è in scadenza se siamo esattamente nell'ultima settimana
+        if (settimanaAttuale == durataTotale) {
+          inScadenza.add({
+            ...p,
+            'settimana_attuale': settimanaAttuale,
+            'nome_atleta':
+                "${p['profiles']['first_name']} ${p['profiles']['last_name']}",
+          });
+        }
+      }
+      return inScadenza;
+    } catch (e) {
+      debugPrint("DEBUG: Errore getPianiInScadenza: $e");
       return [];
     }
   }
@@ -346,7 +387,6 @@ class DatabaseService {
     }
   }
 
-  // --- FUNZIONE UNIFICATA E CORRETTA PER L'AGGIORNAMENTO DATI ATLETA ---
   static Future<void> updateDatiAllenamentoAtleta(
     String exerciseId,
     List<String> weights,
@@ -372,7 +412,6 @@ class DatabaseService {
     }
   }
 
-  // Alias per compatibilità con eventuali vecchie chiamate
   static Future<bool> aggiornaProgressiMultiSerie(
     String exerciseId,
     List<dynamic> listaPesi,
