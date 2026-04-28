@@ -115,7 +115,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 15),
                     const Text(
-                      "TRAIN UP",
+                      "DottBertoliniPT",
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
@@ -246,7 +246,7 @@ class _LoginViewState extends State<LoginView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text("Nuovo su Train Up?"),
+                        const Text("Nuovo sull'App?"),
                         TextButton(
                           onPressed: _isLoading
                               ? null
