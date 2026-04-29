@@ -578,7 +578,7 @@ class _EserciziListaViewState extends State<EserciziListaView> {
                         style: const TextStyle(
                           fontWeight: FontWeight.w900,
 
-                          color: Colors.blue,
+                          color: Colors.black,
                         ),
                       ),
 

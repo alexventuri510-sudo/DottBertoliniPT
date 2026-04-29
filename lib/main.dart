@@ -162,6 +162,7 @@ class _MyAppState extends State<MyApp> {
           vaiAAggiungiAtleta: _navigaAAggiungiAtleta,
           vaiAProfilo: () => _navigaAProfiloTrainer(userId),
           vaiAPianiInScadenza: _navigaAPianiInScadenza,
+          logout: _eseguiLogout,
         );
       } else {
         _schermataAttuale = AtletaHomeView(
@@ -319,13 +320,15 @@ class _MyAppState extends State<MyApp> {
     String nomeAtleta,
     int settimanaIniziale,
   ) {
+    // RECUPERO DEL GIORNO DALLA MAPPA DEL PIANO
+    final String giorno = piano['day_of_week'] ?? "Allenamento";
+
     navigatorKey.currentState?.push(
       MaterialPageRoute(
         builder: (context) => AtletaListaEserciziView(
           planId: piano['id'].toString(),
           nomeAtleta: nomeAtleta,
-          // --- AGGIUNGI QUESTA RIGA ---
-          giornoSettimana: "Allenamento",
+          giornoSettimana: giorno, // PASSAGGIO DEL GIORNO DINAMICO
           durataSettimane: piano['duration_weeks'] ?? 1,
           settimanaIniziale: settimanaIniziale,
           vaiIndietro: () => navigatorKey.currentState?.pop(),

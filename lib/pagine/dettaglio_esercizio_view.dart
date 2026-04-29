@@ -436,7 +436,7 @@ class DettaglioEsercizioView extends StatelessWidget {
 
                           icon: const Icon(Icons.list_alt_rounded),
 
-                          label: const Text("TORNA ALLA LISTA ESERCIZI"),
+                          label: const Text("FINE"),
 
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
