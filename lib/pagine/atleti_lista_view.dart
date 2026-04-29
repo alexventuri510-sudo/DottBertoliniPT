@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+
 import '../services/database_service.dart';
 
 class AtletiListaView extends StatefulWidget {
   final VoidCallback vaiIndietro;
+
   final Function(String id, String nome) vaiAPianiAtleta;
 
   const AtletiListaView({
     super.key,
+
     required this.vaiIndietro,
+
     required this.vaiAPianiAtleta,
   });
 
@@ -21,66 +25,76 @@ class _AtletiListaViewState extends State<AtletiListaView> {
   @override
   void initState() {
     super.initState();
+
     _caricaAtleti();
   }
 
-  // Metodo per ricaricare i dati
   void _caricaAtleti() {
     setState(() {
-      _futureAtleti = DatabaseService.getAtletiCollegati();
+      _futureAtleti = DatabaseService.getAtletiCollegati().then((lista) {
+        lista.sort((a, b) {
+          String nomeA = (a['first_name'] ?? '').toString().toLowerCase();
+
+          String nomeB = (b['first_name'] ?? '').toString().toLowerCase();
+
+          return nomeA.compareTo(nomeB);
+        });
+
+        return lista;
+      });
     });
   }
 
   void _confermaScollegamento(String atletaId, String nomeAtleta) {
     showDialog(
       context: context,
+
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+
         title: const Text("Scollega Atleta"),
+
         content: Text(
-          "Sei sicuro di voler scollegare $nomeAtleta? Non vedrai più i suoi piani, ma i dati non verranno eliminati.",
+          "Sei sicuro di voler scollegare $nomeAtleta? Non vedrai più i suoi piani, ma i dati rimarranno salvati.",
         ),
+
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Annulla"),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () async {
-              Navigator.pop(context); // Chiude il dialog immediatamente
 
-              // Esegue lo scollegamento sul DB
+            child: const Text("Annulla", style: TextStyle(color: Colors.grey)),
+          ),
+
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade600,
+
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+
+            onPressed: () async {
+              Navigator.pop(context);
+
               final success = await DatabaseService.scollegaAtleta(atletaId);
 
               if (success) {
-                // Piccolo trucco: aspettiamo un istante prima di ricaricare
-                // per essere sicuri che Supabase abbia processato l'update
                 await Future.delayed(const Duration(milliseconds: 300));
+
                 _caricaAtleti();
 
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Atleta $nomeAtleta scollegato"),
-                      backgroundColor: Colors.black87,
-                    ),
-                  );
-                }
-              } else {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "Errore: controlla la connessione o i permessi DB",
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
+                    SnackBar(content: Text("Atleta $nomeAtleta scollegato")),
                   );
                 }
               }
             },
+
             child: const Text(
               "Sì, scollega",
+
               style: TextStyle(color: Colors.white),
             ),
           ),
@@ -92,162 +106,238 @@ class _AtletiListaViewState extends State<AtletiListaView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+
+            color: Colors.black,
+
+            size: 20,
+          ),
+
           onPressed: widget.vaiIndietro,
         ),
+
         title: const Text(
           "I MIEI ATLETI",
+
           style: TextStyle(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w900,
+
             color: Colors.black,
+
             fontSize: 18,
+
+            letterSpacing: 1.2,
           ),
         ),
+
         centerTitle: true,
+
         backgroundColor: Colors.white,
-        elevation: 0,
+
+        elevation: 0.5,
       ),
-      body: Container(
-        color: Colors.white,
-        child: FutureBuilder<List<dynamic>>(
-          future: _futureAtleti,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: Colors.black),
-              );
-            }
 
-            if (snapshot.hasError) {
-              return Center(child: Text("Errore: ${snapshot.error}"));
-            }
+      body: FutureBuilder<List<dynamic>>(
+        future: _futureAtleti,
 
-            final atleti = snapshot.data ?? [];
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.black),
+            );
+          }
 
-            if (atleti.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.group_off, size: 60, color: Colors.grey),
-                    const SizedBox(height: 15),
-                    const Text(
-                      "Nessun atleta collegato.",
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                      ),
-                      onPressed: _caricaAtleti,
-                      child: const Text(
-                        "AGGIORNA LISTA",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
+          if (snapshot.hasError) {
+            return const Center(child: Text("Errore nel caricamento"));
+          }
 
-            return RefreshIndicator(
-              color: Colors.black,
-              onRefresh: () async {
-                _caricaAtleti();
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.all(15),
-                itemCount: atleti.length,
-                itemBuilder: (context, index) {
-                  final a = atleti[index];
-                  final nome = a['first_name'] ?? 'Utente';
-                  final cognome = a['last_name'] ?? '';
-                  final nomeCompleto = "$nome $cognome";
+          final atleti = snapshot.data ?? [];
 
-                  return Card(
-                    elevation: 0,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey.shade200),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 15,
-                        vertical: 8,
-                      ),
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.blue.shade50,
-                        child: Text(
-                          nome.isNotEmpty ? nome[0].toUpperCase() : "?",
-                          style: const TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      title: Text(
-                        nomeCompleto.toUpperCase(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      subtitle: Text(
-                        "Codice: ${a['unique_code'] ?? '-'}",
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 12,
-                        ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () => widget.vaiAPianiAtleta(
-                              a['id'].toString(),
-                              nomeCompleto,
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              "GESTISCI",
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.link_off,
-                              color: Colors.redAccent,
-                              size: 22,
-                            ),
-                            onPressed: () => _confermaScollegamento(
-                              a['id'].toString(),
-                              nomeCompleto,
-                            ),
-                            tooltip: "Scollega atleta",
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+          if (atleti.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+
+                children: [
+                  Icon(
+                    Icons.people_outline,
+
+                    size: 80,
+
+                    color: Colors.grey.shade300,
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  const Text(
+                    "Nessun atleta in lista",
+
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                ],
               ),
             );
-          },
-        ),
+          }
+
+          return RefreshIndicator(
+            color: Colors.black,
+
+            onRefresh: () async => _caricaAtleti(),
+
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+
+              itemCount: atleti.length,
+
+              itemBuilder: (context, index) {
+                final a = atleti[index];
+
+                final nome = a['first_name'] ?? 'Utente';
+
+                final cognome = a['last_name'] ?? '';
+
+                final nomeCompleto = "$nome $cognome";
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 15),
+
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+
+                    borderRadius: BorderRadius.circular(16),
+
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+
+                        blurRadius: 10,
+
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 25,
+
+                          backgroundColor: Colors.blue.shade50,
+
+                          child: Text(
+                            nome.isNotEmpty ? nome[0].toUpperCase() : "?",
+
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+
+                              fontWeight: FontWeight.bold,
+
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 15),
+
+                        Expanded(
+                          child: Text(
+                            nomeCompleto.toUpperCase(),
+
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+
+                              fontSize: 15,
+                            ),
+
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+
+                        Column(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () => widget.vaiAPianiAtleta(
+                                a['id'].toString(),
+
+                                nomeCompleto,
+                              ),
+
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+
+                                foregroundColor: Colors.white,
+
+                                elevation: 0,
+
+                                minimumSize: const Size(90, 32),
+
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+
+                              child: const Text(
+                                "GESTISCI",
+
+                                style: TextStyle(
+                                  fontSize: 11,
+
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            ElevatedButton(
+                              onPressed: () => _confermaScollegamento(
+                                a['id'].toString(),
+
+                                nomeCompleto,
+                              ),
+
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.redAccent,
+
+                                foregroundColor: Colors.white,
+
+                                elevation: 0,
+
+                                minimumSize: const Size(90, 32),
+
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+
+                              child: const Text(
+                                "SCOLLEGA",
+
+                                style: TextStyle(
+                                  fontSize: 11,
+
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }

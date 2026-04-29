@@ -324,6 +324,8 @@ class _MyAppState extends State<MyApp> {
         builder: (context) => AtletaListaEserciziView(
           planId: piano['id'].toString(),
           nomeAtleta: nomeAtleta,
+          // --- AGGIUNGI QUESTA RIGA ---
+          giornoSettimana: "Allenamento",
           durataSettimane: piano['duration_weeks'] ?? 1,
           settimanaIniziale: settimanaIniziale,
           vaiIndietro: () => navigatorKey.currentState?.pop(),
