@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Aggiunto per la formattazione della data
 import '../services/database_service.dart';
 
 class PtPianiInScadenzaView extends StatefulWidget {
@@ -21,6 +22,14 @@ class _PtPianiInScadenzaViewState extends State<PtPianiInScadenzaView> {
   Future<void> _caricaDati() async {
     setState(() => _isLoading = true);
     final dati = await DatabaseService.getPianiInScadenza();
+
+    // Ordinamento alfabetico crescente per nome atleta
+    dati.sort((a, b) {
+      String nomeA = (a['nome_atleta'] ?? "").toString().toLowerCase();
+      String nomeB = (b['nome_atleta'] ?? "").toString().toLowerCase();
+      return nomeA.compareTo(nomeB);
+    });
+
     setState(() {
       _piani = dati;
       _isLoading = false;
@@ -128,6 +137,17 @@ class _PtPianiInScadenzaViewState extends State<PtPianiInScadenzaView> {
   }
 
   Widget _buildPianoCard(Map<String, dynamic> piano) {
+    // Formattazione della data in gg/mm/aaaa
+    String dataFormattata = "";
+    try {
+      if (piano['start_date'] != null) {
+        DateTime dt = DateTime.parse(piano['start_date'].toString());
+        dataFormattata = DateFormat('dd/MM/yyyy').format(dt);
+      }
+    } catch (e) {
+      dataFormattata = piano['start_date'].toString().split(' ')[0];
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
@@ -150,11 +170,11 @@ class _PtPianiInScadenzaViewState extends State<PtPianiInScadenzaView> {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: Colors.orange.shade50,
+                  backgroundColor: Colors.blue.shade50, // Cambiato in Blu
                   child: Text(
                     piano['nome_atleta']?[0] ?? "A",
                     style: TextStyle(
-                      color: Colors.orange.shade800,
+                      color: Colors.blue.shade800, // Cambiato in Blu
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -187,13 +207,13 @@ class _PtPianiInScadenzaViewState extends State<PtPianiInScadenzaView> {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade700,
+                    color: Colors.red.shade700, // Cambiato in Rosso
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Text(
                     "ULTIMA SETT.",
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Colors.white, // Scritta Bianca
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -210,7 +230,7 @@ class _PtPianiInScadenzaViewState extends State<PtPianiInScadenzaView> {
               children: [
                 _buildInfoColumn(
                   "Inizio",
-                  piano['start_date'].toString().split(' ')[0],
+                  dataFormattata, // Usata la data formattata gg/mm/aaaa
                 ),
                 _buildInfoColumn("Durata", "${piano['duration_weeks']} sett."),
                 _buildInfoColumn(

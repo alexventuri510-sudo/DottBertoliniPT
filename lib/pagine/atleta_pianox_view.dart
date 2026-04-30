@@ -230,7 +230,6 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
   }
 
   Widget _buildEsercizioCard(Map<String, dynamic> es, int index) {
-    // Logica di controllo completamento più robusta
     final String pesiSalvati = (es['series_weights_atleta']?.toString() ?? "")
         .trim();
     final String noteAtleta = (es['athlete_notes']?.toString() ?? "").trim();
@@ -271,35 +270,24 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 6),
-          child: Row(
-            children: [
-              const Icon(Icons.repeat, size: 14, color: Colors.blueGrey),
-              const SizedBox(width: 4),
-              Text(
-                "Target: ${es['sets_reps'] ?? '-'}",
-                style: const TextStyle(
-                  color: Colors.blueGrey,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ],
+          child: Text(
+            "Serie e Reps: ${es['sets_reps'] ?? '-'}",
+            style: const TextStyle(
+              color: Colors.blueGrey,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
           ),
         ),
         trailing: ElevatedButton(
           onPressed: () async {
-            // Naviga al dettaglio
             final result = await widget.vaiADettaglioEsercizio(
               _esercizi,
               index,
               widget.settimana,
             );
 
-            // Se l'utente ha salvato (result == true), aggiorniamo l'interfaccia
             if (result == true) {
-              setState(() {
-                // Il riferimento alla lista _esercizi è già stato aggiornato
-              });
               _caricaEsercizi();
             }
           },

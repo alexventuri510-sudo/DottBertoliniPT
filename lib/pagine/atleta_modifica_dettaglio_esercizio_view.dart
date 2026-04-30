@@ -90,7 +90,7 @@ class _AtletaModificaDettaglioEsercizioViewState
     final dati = widget.listaEsercizi[widget.indiceAttuale];
     final int nSerie = dati['series_count'] ?? 1;
 
-    // Pulizia controller esistenti
+    // Pulizia sicura controller esistenti
     for (var c in _controllersKg) {
       c.dispose();
     }
@@ -100,14 +100,14 @@ class _AtletaModificaDettaglioEsercizioViewState
     _controllersKg.clear();
     _controllersReps.clear();
 
-    // Parsing dati attuali
+    // Parsing dati con protezione null/empty
     List<String> pesiOggi = (dati['series_weights_atleta']?.toString() ?? "")
         .split(',')
-        .where((s) => s.isNotEmpty)
+        .where((s) => s.trim().isNotEmpty)
         .toList();
     List<String> repsOggi = (dati['series_reps_atleta']?.toString() ?? "")
         .split(',')
-        .where((s) => s.isNotEmpty)
+        .where((s) => s.trim().isNotEmpty)
         .toList();
 
     for (int i = 0; i < nSerie; i++) {
@@ -135,7 +135,7 @@ class _AtletaModificaDettaglioEsercizioViewState
         .toList();
     String nuoveNote = _controllerNote.text;
 
-    // Aggiornamento locale della lista per mantenere lo stato durante la navigazione
+    // Aggiornamento stato locale
     widget.listaEsercizi[widget.indiceAttuale]['series_weights_atleta'] =
         nuoviPesi.join(',');
     widget.listaEsercizi[widget.indiceAttuale]['series_reps_atleta'] = nuoveReps
@@ -173,7 +173,6 @@ class _AtletaModificaDettaglioEsercizioViewState
   @override
   Widget build(BuildContext context) {
     final dati = widget.listaEsercizi[widget.indiceAttuale];
-
     final int numeroEsercizio = widget.indiceAttuale + 1;
     final int totaleEsercizi = widget.listaEsercizi.length;
 

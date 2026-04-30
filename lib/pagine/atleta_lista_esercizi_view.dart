@@ -251,7 +251,7 @@ class _AtletaListaEserciziViewState extends State<AtletaListaEserciziView> {
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Text(
-            "Target: ${es['sets_reps'] ?? '-'}",
+            "Serie e Reps: ${es['sets_reps'] ?? '-'}",
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
           ),
         ),

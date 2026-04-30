@@ -461,7 +461,7 @@ class _EserciziListaViewState extends State<EserciziListaView> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Dettaglio: ${es['sets_reps'] ?? 'N/D'}",
+                  "Serie e Reps: ${es['sets_reps'] ?? 'N/D'}",
                   style: TextStyle(color: Colors.blueGrey[600], fontSize: 12),
                 ),
               ],

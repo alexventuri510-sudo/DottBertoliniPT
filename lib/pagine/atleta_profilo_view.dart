@@ -306,6 +306,7 @@ class _AtletaProfiloViewState extends State<AtletaProfiloView> {
                 ),
               ),
               const SizedBox(height: 40),
+
               // BOTTONE SALVA
               _buildActionButton(
                 "SALVA MODIFICHE",
@@ -314,10 +315,9 @@ class _AtletaProfiloViewState extends State<AtletaProfiloView> {
                 Icons.save_rounded,
               ),
 
-              // SPAZIATURA PER SPINGERE IL LOGOUT IN FONDO
-              const SizedBox(height: 80),
+              const SizedBox(height: 15),
 
-              // BOTTONE LOGOUT SPOSTATO IN FONDO
+              // BOTTONE LOGOUT POSIZIONATO SOTTO SALVA
               _buildActionButton(
                 "ESCI DALL'ACCOUNT",
                 _apriDialogoLogout,
@@ -326,6 +326,7 @@ class _AtletaProfiloViewState extends State<AtletaProfiloView> {
                 textColor: Colors.white,
                 isOutlined: false,
               ),
+
               const SizedBox(height: 40),
             ],
           ),
