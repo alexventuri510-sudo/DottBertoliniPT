@@ -105,26 +105,52 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        toolbarHeight: 80,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.black,
-            size: 20,
+        automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-          onPressed: widget.vaiIndietro,
-        ),
-        title: const Text(
-          "DETTAGLIO SESSIONE",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 14,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1,
+          child: SafeArea(
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: widget.vaiIndietro,
+                      ),
+                    ),
+                  ),
+                ),
+                const Center(
+                  child: Text(
+                    "DETTAGLIO SESSIONE",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        centerTitle: true,
       ),
       body: Column(
         children: [
@@ -271,11 +297,8 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
 
             // Se l'utente ha salvato (result == true), aggiorniamo l'interfaccia
             if (result == true) {
-              // Aggiornamento locale immediato dello stato per feedback visivo istantaneo
               setState(() {
                 // Il riferimento alla lista _esercizi è già stato aggiornato
-                // all'interno della vista dettaglio essendo un riferimento ad oggetti Map
-                // Chiamiamo comunque il refresh del DB per sicurezza in background
               });
               _caricaEsercizi();
             }

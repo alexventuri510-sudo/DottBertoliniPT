@@ -86,26 +86,52 @@ class _AtletiListaViewState extends State<AtletiListaView> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.black,
-            size: 20,
+        toolbarHeight: 80,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-          onPressed: widget.vaiIndietro,
-        ),
-        title: const Text(
-          "I MIEI ATLETI",
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            color: Colors.black,
-            fontSize: 18,
-            letterSpacing: 1.2,
+          child: SafeArea(
+            child: Stack(
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: widget.vaiIndietro,
+                      ),
+                    ),
+                  ),
+                ),
+                const Center(
+                  child: Text(
+                    "I MIEI ATLETI",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0.5,
       ),
       body: FutureBuilder<List<dynamic>>(
         future: _futureAtleti,
