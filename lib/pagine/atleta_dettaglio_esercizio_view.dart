@@ -326,8 +326,11 @@ class AtletaDettaglioEsercizioView extends StatelessWidget {
                         )
                       : const SizedBox.shrink(),
                 ),
-                if (!isPrimo && !isUltimo) const SizedBox(width: 15),
-                // Pulsante SUCCESSIVO o TORNA ALLA LISTA
+
+                // Spazio aggiunto se entrambi i pulsanti sono visibili (ovvero non è il primo esercizio)
+                if (!isPrimo) const SizedBox(width: 15),
+
+                // Pulsante SUCCESSIVO o FINE (Torna alla lista)
                 Expanded(
                   child: isUltimo
                       ? ElevatedButton.icon(

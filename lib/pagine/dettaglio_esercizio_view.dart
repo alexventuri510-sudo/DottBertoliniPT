@@ -324,7 +324,9 @@ class DettaglioEsercizioView extends StatelessWidget {
                         )
                       : const SizedBox.shrink(),
                 ),
-                if (!isPrimo && !isUltimo) const SizedBox(width: 15),
+                // Modifica qui: aggiungiamo lo spazio se non siamo al primo esercizio
+                // (così appare sia con "SUCCESSIVO" che con "FINE")
+                if (!isPrimo) const SizedBox(width: 15),
                 // SUCCESSIVO o TORNA ALLA LISTA ESERCIZI
                 Expanded(
                   child: isUltimo
