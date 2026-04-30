@@ -464,15 +464,15 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
           "INIZIA ALLENAMENTO",
           Icons.play_arrow_rounded,
           _vaiAProssimoAllenamento,
-          Colors.black,
+          Colors.green, // Sfondo Verde come richiesto
         ),
         const SizedBox(height: 16),
         _btn(
           "VISUALIZZA PIANI ALLENAMENTO",
           Icons.fitness_center_rounded,
           widget.vaiAPianiPersonali,
-          Colors.grey.shade100,
-          textCol: Colors.black87,
+          Colors.blue.shade700, // Sfondo Blu come richiesto
+          textCol: Colors.white, // Testo bianco per leggibilità
         ),
       ],
     );

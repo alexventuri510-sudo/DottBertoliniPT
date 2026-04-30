@@ -156,7 +156,7 @@ class _PtHomeViewState extends State<PtHomeView> {
               titolo: "I tuoi Atleti",
               sottotitolo: "Gestisci schede e progressi",
               icona: Icons.groups_rounded,
-              colore: Colors.black,
+              colore: Colors.blue.shade700, // Cambiato in Blu
               azione: widget.vaiAListaAtleti,
             ),
             const SizedBox(height: 15),
@@ -164,7 +164,7 @@ class _PtHomeViewState extends State<PtHomeView> {
               titolo: "Nuovo Atleta",
               sottotitolo: "Crea account e assegna piani",
               icona: Icons.person_add_alt_1_rounded,
-              colore: Colors.grey.shade800,
+              colore: Colors.green.shade600, // Cambiato in Verde
               azione: widget.vaiAAggiungiAtleta,
             ),
             const SizedBox(height: 40),
