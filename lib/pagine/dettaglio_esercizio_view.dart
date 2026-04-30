@@ -101,10 +101,10 @@ class DettaglioEsercizioView extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Center(
+                Center(
                   child: Text(
-                    "REPORT ATLETA",
-                    style: TextStyle(
+                    "ESERCIZIO ${indiceAttuale + 1} DI ${listaEsercizi.length}",
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
