@@ -82,7 +82,7 @@ class _PtHomeViewState extends State<PtHomeView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        "Bentornato,",
+                        "Ciao,",
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
