@@ -90,6 +90,7 @@ class _AtletaModificaDettaglioEsercizioViewState
     final dati = widget.listaEsercizi[widget.indiceAttuale];
     final int nSerie = dati['series_count'] ?? 1;
 
+    // Pulizia controller esistenti
     for (var c in _controllersKg) {
       c.dispose();
     }
@@ -99,10 +100,15 @@ class _AtletaModificaDettaglioEsercizioViewState
     _controllersKg.clear();
     _controllersReps.clear();
 
+    // Parsing dati attuali
     List<String> pesiOggi = (dati['series_weights_atleta']?.toString() ?? "")
-        .split(',');
+        .split(',')
+        .where((s) => s.isNotEmpty)
+        .toList();
     List<String> repsOggi = (dati['series_reps_atleta']?.toString() ?? "")
-        .split(',');
+        .split(',')
+        .where((s) => s.isNotEmpty)
+        .toList();
 
     for (int i = 0; i < nSerie; i++) {
       _controllersKg.add(TextEditingController(text: _getVal(pesiOggi, i)));
@@ -121,10 +127,15 @@ class _AtletaModificaDettaglioEsercizioViewState
   void _eseguiSalvataggio() {
     final dati = widget.listaEsercizi[widget.indiceAttuale];
     final String idEs = dati['id'].toString();
-    List<String> nuoviPesi = _controllersKg.map((c) => c.text).toList();
-    List<String> nuoveReps = _controllersReps.map((c) => c.text).toList();
+    List<String> nuoviPesi = _controllersKg
+        .map((c) => c.text.isEmpty ? "0" : c.text)
+        .toList();
+    List<String> nuoveReps = _controllersReps
+        .map((c) => c.text.isEmpty ? "0" : c.text)
+        .toList();
     String nuoveNote = _controllerNote.text;
 
+    // Aggiornamento locale della lista per mantenere lo stato durante la navigazione
     widget.listaEsercizi[widget.indiceAttuale]['series_weights_atleta'] =
         nuoviPesi.join(',');
     widget.listaEsercizi[widget.indiceAttuale]['series_reps_atleta'] = nuoveReps
@@ -421,7 +432,7 @@ class _AtletaModificaDettaglioEsercizioViewState
                       label: const Text("VIDEO TUTORIAL"),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.blueGrey[800],
-                        side: BorderSide(color: Colors.blueGrey.shade800),
+                        side: BorderSide(color: Colors.blueGrey.shade800!),
                         padding: const EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
