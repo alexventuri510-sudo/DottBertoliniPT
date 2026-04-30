@@ -90,6 +90,7 @@ class _AtletaModificaDettaglioEsercizioViewState
     final dati = widget.listaEsercizi[widget.indiceAttuale];
     final int nSerie = dati['series_count'] ?? 1;
 
+    // Dispose dei vecchi controller prima di crearne nuovi (importante per la memoria)
     for (var c in _controllersKg) {
       c.dispose();
     }
@@ -163,7 +164,6 @@ class _AtletaModificaDettaglioEsercizioViewState
   Widget build(BuildContext context) {
     final dati = widget.listaEsercizi[widget.indiceAttuale];
 
-    // LOGICA TITOLO DINAMICO
     final int numeroEsercizio = widget.indiceAttuale + 1;
     final int totaleEsercizi = widget.listaEsercizi.length;
 
@@ -219,6 +219,7 @@ class _AtletaModificaDettaglioEsercizioViewState
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Column(
               children: [
+                // INFO BOX
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -264,6 +265,8 @@ class _AtletaModificaDettaglioEsercizioViewState
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // DATA INPUT BOX
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -338,6 +341,8 @@ class _AtletaModificaDettaglioEsercizioViewState
                                         const TextInputType.numberWithOptions(
                                           decimal: true,
                                         ),
+                                    textInputAction:
+                                        TextInputAction.next, // Migliora UX
                                     decoration: _inputStyle(hint: "0"),
                                     textAlign: TextAlign.center,
                                     onChanged: (_) => _eseguiSalvataggio(),
@@ -349,6 +354,8 @@ class _AtletaModificaDettaglioEsercizioViewState
                                 child: TextField(
                                   controller: _controllersReps[i],
                                   keyboardType: TextInputType.number,
+                                  textInputAction:
+                                      TextInputAction.next, // Migliora UX
                                   decoration: _inputStyle(hint: "0"),
                                   textAlign: TextAlign.center,
                                   onChanged: (_) => _eseguiSalvataggio(),
@@ -370,12 +377,14 @@ class _AtletaModificaDettaglioEsercizioViewState
                       TextField(
                         controller: _controllerNote,
                         maxLines: 2,
+                        textInputAction: TextInputAction.done,
                         decoration: _inputStyle(hint: "Com'è andata?"),
                         onChanged: (_) => _eseguiSalvataggio(),
                       ),
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 20),
                 if (videoLink.isNotEmpty)
                   SizedBox(
@@ -395,6 +404,8 @@ class _AtletaModificaDettaglioEsercizioViewState
                     ),
                   ),
                 const SizedBox(height: 15),
+
+                // CRONOMETRO
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
@@ -478,7 +489,10 @@ class _AtletaModificaDettaglioEsercizioViewState
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 30),
+
+                // NAVIGATION BUTTONS
                 Row(
                   children: [
                     Expanded(
@@ -589,6 +603,7 @@ class _AtletaModificaDettaglioEsercizioViewState
     );
   }
 
+  // --- WIDGET HELPER ---
   Widget _timerActionButton({
     required IconData icon,
     required Color color,

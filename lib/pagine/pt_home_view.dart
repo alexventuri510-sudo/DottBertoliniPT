@@ -101,27 +101,7 @@ class _PtHomeViewState extends State<PtHomeView> {
                 azione: widget.vaiAAggiungiAtleta,
               ),
 
-              // SPAZIO PRIMA DEL LOGOUT
-              const SizedBox(height: 60),
-
-              // PULSANTE LOGOUT SPOSTATO QUI IN FONDO
-              Center(
-                child: TextButton.icon(
-                  onPressed: widget.logout,
-                  icon: const Icon(
-                    Icons.logout_rounded,
-                    color: Colors.redAccent,
-                  ),
-                  label: const Text(
-                    "Esci dall'account",
-                    style: TextStyle(
-                      color: Colors.redAccent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
+              // Rimosso il pulsante Logout e il relativo SizedBox(height: 60)
               const SizedBox(height: 40),
             ],
           ),

@@ -204,15 +204,18 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
   }
 
   Widget _buildEsercizioCard(Map<String, dynamic> es, int index) {
-    final String pesiSalvati = es['series_weights_atleta']?.toString() ?? "";
-    final String noteAtleta = es['athlete_notes']?.toString() ?? "";
+    // Logica di controllo completamento più robusta
+    final String pesiSalvati = (es['series_weights_atleta']?.toString() ?? "")
+        .trim();
+    final String noteAtleta = (es['athlete_notes']?.toString() ?? "").trim();
 
     final bool isCompletato =
         (pesiSalvati.isNotEmpty &&
-            pesiSalvati
-                .split(',')
-                .any((v) => v.trim().isNotEmpty && v != "-")) ||
-        noteAtleta.trim().isNotEmpty;
+            pesiSalvati.split(',').any((v) {
+              final cleanV = v.trim();
+              return cleanV.isNotEmpty && cleanV != "-" && cleanV != "0";
+            })) ||
+        noteAtleta.isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -236,7 +239,6 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
           horizontal: 20,
           vertical: 12,
         ),
-        // AGGIUNTA NUMERAZIONE CON ")" PRIMA DEL NOME ESERCIZIO
         title: Text(
           "${index + 1}) ${es['exercise_name']?.toString().toUpperCase() ?? 'ESERCIZIO'}",
           style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
@@ -260,12 +262,21 @@ class _AtletaPianoXViewState extends State<AtletaPianoXView> {
         ),
         trailing: ElevatedButton(
           onPressed: () async {
+            // Naviga al dettaglio
             final result = await widget.vaiADettaglioEsercizio(
               _esercizi,
               index,
               widget.settimana,
             );
+
+            // Se l'utente ha salvato (result == true), aggiorniamo l'interfaccia
             if (result == true) {
+              // Aggiornamento locale immediato dello stato per feedback visivo istantaneo
+              setState(() {
+                // Il riferimento alla lista _esercizi è già stato aggiornato
+                // all'interno della vista dettaglio essendo un riferimento ad oggetti Map
+                // Chiamiamo comunque il refresh del DB per sicurezza in background
+              });
               _caricaEsercizi();
             }
           },
