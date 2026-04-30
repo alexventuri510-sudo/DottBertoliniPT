@@ -194,8 +194,8 @@ class _AtletaModificaDettaglioEsercizioViewState
           elevation: 0,
           leading: IconButton(
             icon: const Icon(
-              Icons.arrow_back_ios_new,
-              color: Colors.blue,
+              Icons.arrow_back, // Modifica 1: Freccia coerente
+              color: Colors.black,
               size: 28,
             ),
             onPressed: () {
@@ -531,7 +531,8 @@ class _AtletaModificaDettaglioEsercizioViewState
                             )
                           : const SizedBox.shrink(),
                     ),
-                    if (!isPrimo && !isUltimo) const SizedBox(width: 15),
+                    // Modifica 2: Aggiunta spaziatura anche per l'ultimo esercizio
+                    if (!isPrimo) const SizedBox(width: 15),
                     Expanded(
                       child: isUltimo
                           ? ElevatedButton.icon(
