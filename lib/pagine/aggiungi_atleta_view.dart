@@ -113,89 +113,103 @@ class _AggiungiAtletaViewState extends State<AggiungiAtletaView> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 10),
-              const Text(
-                "AGGIUNGI ATLETA",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Inserisci il codice univoco che l'atleta\nvisualizza nella sua Home:",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 15),
-              ),
-              const SizedBox(height: 20),
-
-              // Input Codice
-              SizedBox(
-                width: 300,
-                child: TextField(
-                  controller: _codiceController,
-                  textAlign: TextAlign.center,
-                  textCapitalization: TextCapitalization
-                      .characters, // Forza maiuscole sulla tastiera
-                  enabled: !_isLoading, // Disabilita se sta caricando
-                  decoration: StyleConfig.campoTestoDecoration(
-                    label: "Codice Univoco Atleta",
-                  ).copyWith(hintText: "Esempio: ABC123"),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 40, // Sottrae il padding
                 ),
-              ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Centra verticalmente
+                    crossAxisAlignment:
+                        CrossAxisAlignment.center, // Centra orizzontalmente
+                    children: [
+                      const SizedBox(height: 10),
+                      const Text(
+                        "AGGIUNGI ATLETA",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Inserisci il codice univoco che l'atleta\nvisualizza nella sua Home:",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 15),
+                      ),
+                      const SizedBox(height: 20),
 
-              // Messaggio Risultato
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: Text(
-                    _msgRisultato,
-                    key: ValueKey(_msgRisultato),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: _coloreMessaggio,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
+                      // Input Codice
+                      SizedBox(
+                        width: 300,
+                        child: TextField(
+                          controller: _codiceController,
+                          textAlign: TextAlign.center,
+                          textCapitalization: TextCapitalization.characters,
+                          enabled: !_isLoading,
+                          decoration: StyleConfig.campoTestoDecoration(
+                            label: "Codice Univoco Atleta",
+                          ).copyWith(hintText: "Esempio: ABC123"),
+                        ),
+                      ),
 
-              const SizedBox(height: 10),
-
-              // Bottone Conferma
-              SizedBox(
-                width: 300,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading
-                      ? null
-                      : _conferma, // Disabilita se in caricamento
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.grey.shade300,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                      // Messaggio Risultato
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: Text(
+                            _msgRisultato,
+                            key: ValueKey(_msgRisultato),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: _coloreMessaggio,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
                           ),
-                        )
-                      : const Text("CONFERMA COLLEGAMENTO"),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Bottone Conferma
+                      SizedBox(
+                        width: 300,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _conferma,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: Colors.grey.shade300,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text("CONFERMA COLLEGAMENTO"),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

@@ -461,14 +461,14 @@ class _AtletaHomeViewState extends State<AtletaHomeView> {
     return Column(
       children: [
         _btn(
-          "INIZIA ALLENAMENTO",
+          "Inizia allenamento",
           Icons.play_arrow_rounded,
           _vaiAProssimoAllenamento,
           Colors.green, // Sfondo Verde come richiesto
         ),
         const SizedBox(height: 16),
         _btn(
-          "VISUALIZZA PIANI ALLENAMENTO",
+          "Visualizza piani allenamento",
           Icons.fitness_center_rounded,
           widget.vaiAPianiPersonali,
           Colors.blue.shade700, // Sfondo Blu come richiesto

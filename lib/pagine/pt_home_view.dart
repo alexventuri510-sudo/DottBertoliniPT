@@ -145,7 +145,7 @@ class _PtHomeViewState extends State<PtHomeView> {
             ),
             const SizedBox(height: 15),
             _buildDashboardCard(
-              titolo: "Piani in Scadenza",
+              titolo: "Piani in scadenza",
               sottotitolo: "Piani in scadenza: $pianiScadenzaCount",
               icona: Icons.notification_important_rounded,
               colore: Colors.orange.shade700,
@@ -153,7 +153,7 @@ class _PtHomeViewState extends State<PtHomeView> {
             ),
             const SizedBox(height: 15),
             _buildDashboardCard(
-              titolo: "I tuoi Atleti",
+              titolo: "I tuoi atleti",
               sottotitolo: "Gestisci schede e progressi",
               icona: Icons.groups_rounded,
               colore: Colors.blue.shade700, // Cambiato in Blu
@@ -162,7 +162,7 @@ class _PtHomeViewState extends State<PtHomeView> {
             const SizedBox(height: 15),
             _buildDashboardCard(
               titolo: "Nuovo Atleta",
-              sottotitolo: "Crea account e assegna piani",
+              sottotitolo: "Aggiungi nuovo atleta",
               icona: Icons.person_add_alt_1_rounded,
               colore: Colors.green.shade600, // Cambiato in Verde
               azione: widget.vaiAAggiungiAtleta,
