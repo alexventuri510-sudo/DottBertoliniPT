@@ -13,6 +13,33 @@
   <meta name="theme-color" content="#1565C0">
   <title>DottBertoliniPT</title>
   <link rel="manifest" href="manifest.json">
+  <script>
+    // Gestisce il reset password PRIMA che Flutter si avvii
+    (function() {
+      var hash = window.location.hash;
+      var path = window.location.pathname;
+      
+      // Se l'URL contiene un token di recupero (da Supabase)
+      if (hash && (hash.indexOf('access_token=') !== -1 || hash.indexOf('type=recovery') !== -1)) {
+        // Salva il token nel sessionStorage
+        var token = hash.substring(1);
+        sessionStorage.setItem('sb-recovery-token', token);
+        
+        // Pulisci l'URL e ricarica
+        window.location.hash = '';
+        window.location.replace('/');
+        return;
+      }
+      
+      // Se abbiamo un token salvato e siamo sulla home, vai a nuova-password
+      var savedToken = sessionStorage.getItem('sb-recovery-token');
+      if (savedToken && (path === '/' || path === '')) {
+        sessionStorage.removeItem('sb-recovery-token');
+        window.location.replace('/nuova-password');
+        return;
+      }
+    })();
+  </script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
