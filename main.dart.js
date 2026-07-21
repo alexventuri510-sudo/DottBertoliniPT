@@ -51747,7 +51747,7 @@ oh(a){return this.aKK(a)},
 aKK(a){var s=0,r=A.u(t.H),q=this
 var $async$oh=A.v(function(b,c){if(b===1)return A.q(c,r)
 for(;;)switch(s){case 0:s=2
-return A.o(q.a.gek().AE(a,"https://dott-bertolini-pt-v22.onrender.com/login"),$async$oh)
+return A.o(q.a.gek().AE(a,"https://dott-bertolini-pt-v22.onrender.com/reset-password.html"),$async$oh)
 case 2:return A.r(null,r)}})
 return A.t($async$oh,r)},
 oo(a){return this.aLC(a)},
