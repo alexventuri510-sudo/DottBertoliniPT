@@ -51017,6 +51017,7 @@ case 3:m=A.a0g()
 s=m.gft().an("code")?4:5
 break
 case 4:n.x=!0
+n.N(new A.aHD(n))
 p=7
 l=$.fg().b
 l===$&&A.a()
@@ -51025,12 +51026,7 @@ k=m.gft().h(0,"code")
 k.toString
 s=10
 return A.o(l.rw(k),$async$tS)
-case 10:n.N(new A.aHD(n))
-k=$.aVI().gT()
-if(k!=null)k.a8e(A.aXk(new A.aHE(),null,h),new A.aHF())
-s=1
-break
-p=2
+case 10:p=2
 s=9
 break
 case 7:p=6
@@ -51040,7 +51036,12 @@ s=9
 break
 case 6:s=2
 break
-case 9:case 5:s=11
+case 9:l=$.aVI().gT()
+if(l!=null)l.a8e(A.aXk(new A.aHE(),null,h),new A.aHF())
+s=1
+break
+case 5:if(n.x){s=1
+break}s=11
 return A.o(n.gcV().i0($.Bs().gmX(),t.MP).F6(),$async$tS)
 case 11:i=b
 if(n.c!=null)n.N(new A.aHG(n))
@@ -51050,20 +51051,21 @@ case 2:return A.p(o.at(-1),r)}})
 return A.r($async$tS,r)},
 Dt(){var s=0,r=A.t(t.H),q,p=this,o,n,m,l,k,j,i
 var $async$Dt=A.u(function(a,b){if(a===1)return A.p(b,r)
-for(;;)switch(s){case 0:i=A.jB(p.gcV().i0($.Bs(),t.oM))
-if(i==null){s=1
-break}o=i.h(0,"role")
-if(o==null)o="atleta"
-n=i.h(0,"first_name")
-if(n==null)n="Utente"
-m=i.h(0,"id")
-if(m==null)m=""
-l=i.h(0,"unique_code")
+for(;;)switch(s){case 0:if(p.x){s=1
+break}o=A.jB(p.gcV().i0($.Bs(),t.oM))
+if(o==null){s=1
+break}n=o.h(0,"role")
+if(n==null)n="atleta"
+m=o.h(0,"first_name")
+if(m==null)m="Utente"
+l=o.h(0,"id")
 if(l==null)l=""
-k=t.N
-j=t.z
-if(J.d(o,"trainer"))$.Br().ow("/pt-home",A.a2(["nome",n,"userId",m],k,j))
-else $.Br().ow("/atleta-home",A.a2(["nome",n,"codice",l,"userId",m],k,j))
+k=o.h(0,"unique_code")
+if(k==null)k=""
+j=t.N
+i=t.z
+if(J.d(n,"trainer"))$.Br().ow("/pt-home",A.a2(["nome",m,"userId",l],j,i))
+else $.Br().ow("/atleta-home",A.a2(["nome",m,"codice",k,"userId",l],j,i))
 case 1:return A.q(q,r)}})
 return A.r($async$Dt,r)},
 K(a){var s,r,q=null,p="DottBertoliniPT",o=this.gcV().d_($.eh(),t.E),n=B.b4[o.b]
@@ -51072,16 +51074,15 @@ s=A.adQ(n,B.aN)
 r=A.adQ(n,B.H)
 return new A.tN(q,q,q,q,$.Br(),p,s,r,o.a,B.a7x,B.a5Y,!1,q)}}
 A.aHJ.prototype={
-$1(a){var s,r,q=a.a
-if(q===B.hn){this.a.x=!0
+$1(a){var s,r=a.a
+if(r===B.hn){this.a.x=!0
 s=$.aVI().gT()
 if(s!=null)s.a8e(A.aXk(new A.aHH(),null,t.z),new A.aHI())
-return}if(q===B.fo){this.a.x=!1
+return}if(r===B.fo){this.a.x=!1
 $.Br().ov("/login")
 return}s=this.a
-if(!s.x)r=q===B.er||q===B.hp
-else r=!1
-if(r)s.Dt()},
+if(s.x)return
+if(r===B.er||r===B.hp)s.Dt()},
 $S:123}
 A.aHH.prototype={
 $1(a){return B.rk},
