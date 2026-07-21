@@ -23,6 +23,19 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <script>
+    // Gestisce il recupero password da Supabase
+    (function() {
+      var hash = window.location.hash;
+      if (hash && hash.indexOf('access_token=') !== -1) {
+        var token = hash.substring(1);
+        window.location.replace('/nuova-password#' + token);
+      }
+      if (hash && hash.indexOf('type=recovery') !== -1) {
+        window.location.replace('/nuova-password#' + hash.substring(1));
+      }
+    })();
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
