@@ -56195,22 +56195,24 @@ J.cu(J.z(n.d,n.e),"series_reps_atleta",B.b.bO(q,","))
 n=o.a
 J.cu(J.z(n.d,n.e),"athlete_notes",p)
 new A.kj($.cV.aU()).EX(m,p,q,r)},
-aj5(){var s,r,q,p,o,n,m,l,k,j,i,h
+aj5(){var s,r,q,p,o,n,m,l,k,j,i,h,g
 for(s=J.aZ(this.a.d),r=t.s,q=0;s.u();){p=s.gP(s)
 o=J.a2(p)
-n=o.h(p,"series_weights_atleta")
-n=n==null?null:J.aK(n)
-m=A.b((n==null?"":n).split(","),r)
-n=o.h(p,"series_reps_atleta")
-n=n==null?null:J.aK(n)
-l=A.b((n==null?"":n).split(","),r)
+n=o.h(p,"series_count")
+if(J.d(n==null?0:n,0)){++q
+continue}m=o.h(p,"series_weights_atleta")
+m=m==null?null:J.aK(m)
+l=A.b((m==null?"":m).split(","),r)
+m=o.h(p,"series_reps_atleta")
+m=m==null?null:J.aK(m)
+k=A.b((m==null?"":m).split(","),r)
 o=o.h(p,"athlete_notes")
 o=o==null?null:J.aK(o)
-k=B.c.bE(o==null?"":o)
-j=B.b.ho(m,new A.aG2())
-i=B.b.ho(l,new A.aG3())
-h=k.length!==0
-if(j||i||h)++q}if(J.dz(this.a.d))return!1
+j=B.c.bE(o==null?"":o)
+i=B.b.ho(l,new A.aG2())
+h=B.b.ho(k,new A.aG3())
+g=j.length!==0
+if(i||h||g)++q}if(J.dz(this.a.d))return!1
 return q/J.bx(this.a.d)>=0.75},
 ayW(){var s,r=this
 r.u9()
