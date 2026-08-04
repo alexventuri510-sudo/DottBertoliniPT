@@ -58877,7 +58877,7 @@ A.uo.prototype={
 ab(){return new A.a7y()}}
 A.a7y.prototype={
 L(a){var s=this.gcD(),r=s.d7($.yk().$1(this.a.d),t.Ml),q=B.ba[s.d7($.eM(),t.E).b]
-return A.eE(A.um(r,new A.aL7(this,A.P(a).ax.a===B.G,q),new A.aL8(),new A.aL9(),!1,!0,!1,t.j,t.l7),!1,new A.aLa(a),null,"LE TUE DIETE","atleta")},
+return A.eE(A.um(r,new A.aL7(this,A.P(a).ax.a===B.G,q),new A.aL8(),new A.aL9(),!1,!0,!1,t.j,t.l7),!1,new A.aLa(a),null,"PIANI ALIMENTARI","atleta")},
 Lo(a5,a6,a7,a8,a9){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d,c,b,a="dd/MM/yyyy",a0=null,a1=J.a7(a5),a2=A.e7(a1.h(a5,"start_date")),a3=A.e2(a,a0).eg(a2),a4=a1.h(a5,"duration_weeks")
 if(a4==null)a4=0
 s=a6==="passato"
@@ -58931,7 +58931,7 @@ $2(a,b){return B.zt},
 $S:62}
 A.aL7.prototype={
 $1(a){var s,r,q,p,o,n,m,l,k,j,i,h,g,f,e,d=this,c=null,b=J.a7(a)
-if(b.gV(a))return A.cI(A.S("Nessuna dieta assegnata.",c,c,c,c,A.T(c,c,d.b?B.bd:B.E,c,c,c,c,c,c,c,c,c,B.dW,c,c,c,c,!0,c,c,c,c,c,c,c,c),c,c,c),c,c)
+if(b.gV(a))return A.cI(A.S("Nessun piano alimentare assegnato.",c,c,c,c,A.T(c,c,d.b?B.bd:B.E,c,c,c,c,c,c,c,c,c,B.dW,c,c,c,c,!0,c,c,c,c,c,c,c,c),c,c,c),c,c)
 s=[]
 r=[]
 q=[]
@@ -58954,18 +58954,18 @@ else s.push(l)}}b=d.a
 n=d.c
 m=d.b
 k=t.p
-g=A.b([A.S("DIETE IN CORSO",c,c,c,c,A.T(c,c,m?B.aC:B.as,c,c,c,c,c,c,c,c,12,c,c,B.bm,c,c,!0,c,1.1,c,c,c,c,c,c),c,c,c),B.a2],k)
+g=A.b([A.S("PIANI ALIMENTARI IN CORSO",c,c,c,c,A.T(c,c,m?B.aC:B.as,c,c,c,c,c,c,c,c,12,c,c,B.bm,c,c,!0,c,1.1,c,c,c,c,c,c),c,c,c),B.a2],k)
 if(s.length===0){f=m?B.da:B.dt
 e=A.a_(15)
-g.push(A.c3(c,A.S("Nessuna dieta attiva al momento.",c,c,c,c,A.T(c,c,m?B.bd:B.E,c,c,c,c,c,c,c,c,c,B.dW,c,c,c,c,!0,c,c,c,c,c,c,c,c),B.bJ,c,c),B.u,c,c,new A.bA(f,c,c,e,c,c,B.V),c,c,c,c,B.a_,c,c,1/0))}else B.b.J(g,new A.a0(s,new A.aL1(b,o,n,m),A.a4(s).i("a0<1,h>")))
+g.push(A.c3(c,A.S("Nessun piano alimentare attivo al momento.",c,c,c,c,A.T(c,c,m?B.bd:B.E,c,c,c,c,c,c,c,c,c,B.dW,c,c,c,c,!0,c,c,c,c,c,c,c,c),B.bJ,c,c),B.u,c,c,new A.bA(f,c,c,e,c,c,B.V),c,c,c,c,B.a_,c,c,1/0))}else B.b.J(g,new A.a0(s,new A.aL1(b,o,n,m),A.a4(s).i("a0<1,h>")))
 if(q.length!==0){f=b.x
 e=A.bK(f?B.d1:B.h0,B.as,c,20)
-e=A.b([B.at,B.dc,A.cI(A.iv(e,A.S(f?"NASCONDI DIETE FUTURE":"VEDI DIETE FUTURE",c,c,c,c,B.j9,c,c,c),new A.aL2(b),c),c,c)],k)
+e=A.b([B.at,B.dc,A.cI(A.iv(e,A.S(f?"NASCONDI PIANI ALIMENTARI FUTURI":"VEDI PIANI ALIMENTARI FUTURI",c,c,c,c,B.j9,c,c,c),new A.aL2(b),c),c,c)],k)
 if(b.x){f=A.b([B.a2],k)
 B.b.J(f,new A.a0(q,new A.aL3(b,o,n,m),A.a4(q).i("a0<1,h>")))
 B.b.J(e,f)}B.b.J(g,e)}if(r.length!==0){f=b.w
 e=A.bK(f?B.d1:B.ib,B.E,c,20)
-e=A.b([B.at,B.dc,A.cI(A.iv(e,A.S(f?"NASCONDI STORICO":"VEDI STORICO DIETE",c,c,c,c,B.ja,c,c,c),new A.aL4(b),c),c,c)],k)
+e=A.b([B.at,B.dc,A.cI(A.iv(e,A.S(f?"NASCONDI STORICO PIANI ALIMENTARI":"VEDI STORICO PIANI ALIMENTARI",c,c,c,c,B.ja,c,c,c),new A.aL4(b),c),c,c)],k)
 if(b.w){k=A.b([B.a2],k)
 B.b.J(k,new A.a0(r,new A.aL5(b,o,n,m),A.a4(r).i("a0<1,h>")))
 B.b.J(e,k)}B.b.J(g,e)}g.push(B.ty)
@@ -61720,7 +61720,7 @@ else j.push(p)}}return A.b([j,i,h],t.X6)},
 L(a){var s,r=this,q=r.gcD(),p=q.d7($.kT().$1(r.a.d),t.Ml),o=B.ba[q.d7($.eM(),t.E).b],n=A.P(a).ax.a===B.G
 if(r.y!=null){q=r.z.toUpperCase()
 return A.eE(A.um(p,new A.aMk(r,n,o),new A.aMl(),new A.aMm(),!1,!0,!1,t.j,t.l7),!1,r.gamp(),null,q,"atleta")}s=r.ams()
-return A.eE(A.um(p,new A.aMn(r,o,s[0],n,s[1],s[2]),new A.aMo(),new A.aMp(),!1,!0,!1,t.j,t.l7),!1,new A.aMq(a),null,"I TUOI PIANI","atleta")},
+return A.eE(A.um(p,new A.aMn(r,o,s[0],n,s[1],s[2]),new A.aMo(),new A.aMp(),!1,!0,!1,t.j,t.l7),!1,new A.aMq(a),null,"PIANI ALLENAMENTO","atleta")},
 Lq(a,b,c,a0){var s,r,q,p,o,n,m,l,k,j="start_date",i=null,h="dd/MM/yyyy",g="end_date",f=J.n6(a0,new A.aLY(a)).gC(0),e="",d=""
 try{s=J.a7(a)
 if(s.h(a,j)!=null)e=A.e2(h,i).eg(A.e7(s.h(a,j)))}catch(r){}try{s=J.a7(a)
